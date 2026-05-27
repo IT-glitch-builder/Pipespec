@@ -31,6 +31,16 @@ const PORT = Number(process.env.PORT) || 3001;
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
 
+// ── API-NØGLE endpoint — skal være FØR express.static ────────────────────────
+app.get('/api/config', (_req, res) => {
+  const key = process.env.ANTHROPIC_API_KEY || '';
+  res.json({ apiKey: key });
+});
+
+app.get('/', (_req, res) => {
+  res.redirect('/PipeSpec.html');
+});
+
 // Servér HTML-filen statisk — no-cache så opdateringer altid vises
 app.use(express.static(__dirname, {
   etag: false,
@@ -41,15 +51,6 @@ app.use(express.static(__dirname, {
     res.setHeader('Expires', '0');
   }
 }));
-app.get('/', (_req, res) => {
-  res.redirect('/PipeSpec.html');
-});
-
-// ── API-NØGLE endpoint — leverer nøgle fra .env til browseren ─────────────────
-app.get('/api/config', (_req, res) => {
-  const key = process.env.ANTHROPIC_API_KEY || '';
-  res.json({ apiKey: key });
-});
 
 // ── HJÆLPEFUNKTIONER ──────────────────────────────────────────────────────────
 
