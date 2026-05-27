@@ -6,8 +6,9 @@
 */
 
 const AI = (() => {
-  const KEY_STORE = 'ew-ai-apikey';
-  const API_URL   = 'https://api.anthropic.com/v1/messages';
+  const KEY_STORE  = 'ew-ai-apikey';
+  const PROXY_URL  = 'https://pipespec-proxy.onrender.com/ai';
+  const API_URL    = PROXY_URL; // beholder API_URL-variablen så resten af koden virker
   let _msgs        = [];
   let _attachments = [];
   let _attId       = 0;
@@ -329,8 +330,10 @@ Calculation summary (explanation after calculate): compact single line.
     const inp  = document.getElementById('ai-input');
     const text = inp ? inp.value.trim() : '';
     if (!text && _attachments.length === 0) return;
-    const apiKey = _key();
-    if (!apiKey) { _bubble('system', 'Tilføj en Claude API-nøgle i feltet øverst og tryk Gem.'); return; }
+    // Hent licens-info fra lokal storage (sættes af licensaktivering)
+    const licenseKey = localStorage.getItem('ew-license-key') || '';
+    const hwid       = localStorage.getItem('ew-hwid') || '';
+    if (!licenseKey) { _bubble('system', 'AI kræver en aktiv licens. Kontakt EdgeWay for at få en licensnøgle.'); return; }
 
     const parts = [];
     for (const att of _attachments) {
@@ -357,10 +360,15 @@ Calculation summary (explanation after calculate): compact single line.
     try {
       const resp = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({ model: chosen.id, max_tokens: 4096, system: SYSTEM, messages: _msgs })
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ licenseKey, hwid, model: chosen.id, max_tokens: 4096, system: SYSTEM, messages: _msgs })
       });
-      if (!resp.ok) { let em = 'HTTP ' + resp.status; try { const j = await resp.json(); em = j.error?.message || em; } catch(e) {} throw new Error(em); }
+      if (!resp.ok) {
+        let em = 'HTTP ' + resp.status;
+        try { const j = await resp.json(); em = j.error || j.error?.message || em; } catch(e) {}
+        if (resp.status === 403) em = '⚠️ Licens: ' + em;
+        throw new Error(em);
+      }
       const data  = await resp.json();
       const reply = data.content?.[0]?.text || '';
       _msgs.push({ role: 'assistant', content: reply });
