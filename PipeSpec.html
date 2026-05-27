@@ -1695,15 +1695,15 @@ document.addEventListener('DOMContentLoaded', () => {
 <!-- Hent API-nøgle + Git-version fra serveren -->
 <script>
 (async () => {
-  // Hent og vis Git-version
+  // Hent og vis version
   try {
     const rv = await fetch('/api/version');
     if (rv.ok) {
       const v = await rv.json();
       const el = document.getElementById('app-version');
-      if (el && v.hash !== 'unknown') {
-        el.textContent = v.hash + (v.dirty ? ' *' : '') + (v.date ? '  ·  ' + v.date : '');
-        el.title = 'Git commit: ' + v.hash + (v.dirty ? '\nUgemte ændringer' : '');
+      if (el) {
+        el.textContent = 'v' + v.version + (v.hash ? '  ·  ' + v.hash : '') + (v.dirty ? ' *' : '');
+        el.title = 'Version ' + v.version + (v.hash ? '\nGit: ' + v.hash : '') + (v.dirty ? '\nUgemte ændringer' : '');
       }
     }
   } catch (_) {}

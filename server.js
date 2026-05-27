@@ -37,16 +37,16 @@ app.get('/api/config', (_req, res) => {
   res.json({ apiKey: key });
 });
 
-// ── VERSIONS endpoint — Git commit hash + dato ────────────────────────────────
+// ── VERSIONS endpoint — semver fra package.json + Git commit hash ─────────────
 app.get('/api/version', (_req, res) => {
   const { execSync } = require('child_process');
+  const pkg = require('./package.json');
   try {
-    const hash = execSync('git rev-parse --short HEAD', { cwd: __dirname }).toString().trim();
-    const date = execSync('git log -1 --format=%cd --date=format:%Y-%m-%d', { cwd: __dirname }).toString().trim();
-    const dirty = execSync('git status --porcelain', { cwd: __dirname }).toString().trim();
-    res.json({ hash, date, dirty: dirty.length > 0 });
+    const hash  = execSync('git rev-parse --short HEAD', { cwd: __dirname }).toString().trim();
+    const dirty = execSync('git status --porcelain',     { cwd: __dirname }).toString().trim();
+    res.json({ version: pkg.version, hash, dirty: dirty.length > 0 });
   } catch (_) {
-    res.json({ hash: 'unknown', date: '', dirty: false });
+    res.json({ version: pkg.version, hash: '', dirty: false });
   }
 });
 
