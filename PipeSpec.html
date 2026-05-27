@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-density="default">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PipeSpec — Pipeline Dimensioning · EdgeWay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pipespec.css">
+<style>
+/* ── Project sidebar fixes ── */
+.proj-item-edit { display: none; }  /* hidden until user double-clicks to rename */
+
+/* ── Backward-compat CSS aliases — engine-generated HTML uses old variable names ── */
+:root {
+  --text2:    var(--text-2);
+  --text3:    var(--text-3);
+  --card2:    var(--card-2);
+  --bord:     var(--hair);
+  --bord-m:   var(--hair-strong);
+  --acc2:     var(--acc-2);
+  --acc-glow: var(--acc-bg-2);
+}
+/* ── CSS classes used by engine-generated result HTML ── */
+.kgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:14px}
+.kpi{background:var(--card-2);border:1px solid var(--hair);border-radius:var(--r-sm);padding:12px 14px;position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--acc);border-radius:var(--r-sm) 0 0 var(--r-sm)}
+.kpi.ok::after{background:var(--ok)}.kpi.bad::after{background:var(--warn)}.kpi.inf::after{background:var(--info)}.kpi.acc::after{background:var(--acc)}
+.kpi-l{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase}
+.kpi-v{font-family:var(--mono);font-size:22px;font-weight:500;line-height:1;color:var(--text)}
+.kpi-u{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:3px}
+.rcard{background:var(--card);border:1px solid var(--hair);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh-1);margin-bottom:0}
+.rcard-h{padding:14px 16px 4px}.rcard-b{padding:16px}
+.rcard-h h2{display:inline-flex;align-items:center;border:1.5px solid var(--acc);color:var(--acc);background:transparent;border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;font-family:var(--sans)}
+.fbox{background:var(--card-2);border:1px solid var(--hair);border-left:2px solid var(--acc);border-radius:var(--r-sm);padding:11px 14px;font-family:var(--mono);font-size:12px;color:var(--text-2);margin-bottom:10px;line-height:1.8}
+.ftit{color:var(--acc-2);font-size:10px;letter-spacing:1px;margin-bottom:6px;text-transform:uppercase;font-weight:500}
+.fv{color:var(--acc)}.fd{color:var(--acc)}.fr{color:var(--acc-2);font-size:12px;font-weight:500}
+.stbl{width:100%;border-collapse:collapse;font-size:12px;font-family:var(--mono)}
+.stbl th{background:var(--card-2);color:var(--text-3);text-align:center;padding:8px 6px;font-size:10px;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--hair);font-weight:500}
+.stbl td{text-align:center;padding:7px 6px;border-bottom:1px solid var(--hair);color:var(--text-2)}
+.stbl tr.rec td{background:var(--ok-bg);color:var(--ok);font-weight:600}
+.stbl tr.pass-row td{color:var(--ok)}.stbl tr.fail-row td{color:var(--warn)}.stbl tr.rec-row td{background:var(--ok-bg);color:var(--ok);font-weight:600}
+.stbl tr:hover td{background:var(--card-2)}
+.rec-badge{background:var(--ok);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:.5px}
+.rec-box{background:var(--ok-bg);border:1px solid var(--ok-bord);border-radius:var(--r-sm);padding:13px 16px;display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.rec-box .big{font-family:var(--mono);font-size:26px;font-weight:600;color:var(--ok)}.rec-box .sub{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:2px}
+.cat-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 16px;border-radius:20px;font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:.5px}
+.cat-III{background:var(--warn-bg);border:1px solid var(--warn-bord);color:var(--warn)}
+.cat-II{background:var(--acc-bg);border:1px solid var(--acc-bg-2);color:var(--acc-2)}
+.cat-I{background:var(--info-bg);border:1px solid var(--info-bord);color:var(--info)}
+.cat-0{background:var(--ok-bg);border:1px solid var(--ok-bord);color:var(--ok)}
+.cat-art43{background:rgba(0,0,0,.03);border:1px solid var(--hair);color:var(--text-3)}
+.irow{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--hair)}
+.ik{font-family:var(--mono);font-size:10px;color:var(--text-3)}.iv{font-family:var(--mono);font-size:11px;color:var(--text)}
+.ped-cat-note{background:rgba(0,0,0,.02);border:1px solid var(--hair);border-left:2px solid var(--text-3);border-radius:var(--r-sm);padding:9px 12px;font-family:var(--mono);font-size:10px;color:var(--text-3);line-height:1.7;margin-top:6px;font-style:italic}
+.fix-box{background:var(--info-bg);border:1px solid var(--info-bord);border-left:2px solid var(--info);border-radius:var(--r-sm);padding:11px 12px;margin-top:4px}
+.fix-label{font-family:var(--mono);font-size:10px;color:var(--info);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+/* AI message classes */
+.ai-msg{border-radius:12px;padding:10px 13px;font-size:13px;line-height:1.55;font-family:var(--sans);max-width:90%;word-break:break-word}
+.ai-msg-user{background:var(--acc);color:#fff;align-self:flex-end;border-bottom-right-radius:3px}
+.ai-msg-assistant{background:var(--card-2);color:var(--text);align-self:flex-start;border-bottom-left-radius:3px;border:1px solid var(--hair)}
+.ai-msg-system{background:var(--acc-bg);color:var(--acc-2);align-self:center;border-radius:8px;font-size:11px;padding:7px 12px;max-width:95%;text-align:center;border:1px solid var(--acc-bg-2)}
+.ai-confirm{background:var(--card);border:1px solid var(--hair-strong);border-left:3px solid var(--acc);border-radius:8px;padding:11px 13px;align-self:stretch;max-width:100%;font-family:var(--sans);font-size:12px;color:var(--text)}
+.ai-confirm-title{font-size:10px;font-weight:700;color:var(--acc-2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+.ai-confirm-tbl{width:100%;border-collapse:collapse;margin-bottom:8px}
+.ai-confirm-tbl th{background:var(--acc-bg);color:var(--acc-2);font-size:10px;letter-spacing:.3px;text-transform:uppercase;padding:4px 7px;text-align:left;font-weight:600}
+.ai-confirm-tbl td{padding:4px 7px;border-bottom:1px solid var(--hair);font-family:var(--mono);color:var(--text);font-size:11px}
+.ai-confirm-tbl tr:last-child td{border-bottom:none}
+.ai-confirm-qs{border-top:1px solid var(--hair);padding-top:8px;margin-top:4px}
+.ai-confirm-qs-title{font-size:10px;color:var(--info);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.ai-confirm-q{color:var(--text-2);margin-bottom:3px;line-height:1.5;font-size:12px;padding-left:8px;border-left:2px solid var(--hair);margin-left:2px}
+.ai-confirm-hint{margin-top:8px;font-size:10px;color:var(--text-3);font-style:italic}
+</style>
+</head>
+<body>
+
+<!-- Tooltip popover (id-preserved) -->
+<div id="tooltip">
+  <div class="tt-title" id="tt-title"></div>
+  <div id="tt-body"></div>
+  <div class="tt-ref" id="tt-ref" style="display:none"></div>
+</div>
+
+<!-- ───────────── SIDEBAR PEEK ZONE ───────────── -->
+<div class="sidebar-peek-zone" id="sidebarPeekZone"></div>
+
+<!-- ───────────── PROJECT SIDEBAR ───────────── -->
+<nav class="proj-sidebar" id="projSidebar">
+  <div class="proj-sidebar-brand">
+    <div class="sb-mark">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M3 8 L8 3 L13 8 L8 13 Z" fill="white" opacity="0.95"/>
+        <path d="M5.5 8 L8 5.5 L10.5 8 L8 10.5 Z" fill="#2E6896"/>
+      </svg>
+    </div>
+    <div>
+      <div class="sb-name">Edge<span>Way</span></div>
+      <div class="sb-sub">PipeSpec</div>
+    </div>
+    <button class="sb-collapse-btn" onclick="UI.toggleSidebar()" data-i18n-title="sidebar.collapse" title="Skjul panel (Ctrl+B)">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <rect x="1" y="1.5" width="14" height="13" rx="2.5"/>
+        <line x1="5.5" y1="1.5" x2="5.5" y2="14.5"/>
+        <polyline points="8.5,5.5 6.5,8 8.5,10.5"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="proj-sidebar-head">
+    <div class="proj-sidebar-title" data-i18n="sidebar.projects">Projekter</div>
+    <button class="proj-new-btn" onclick="UI.openNewProject()" data-i18n="sidebar.newProject">+ Nyt projekt</button>
+  </div>
+
+  <div class="proj-list" id="proj-list">
+  </div>
+
+  <div class="proj-footer">
+    <div class="proj-autosave" id="proj-autosave-txt" data-i18n="sidebar.autosave">Auto-gem aktiv</div>
+    <div style="font-size:11px;color:var(--text-4);margin-top:6px;letter-spacing:0.02em;">v1.0.12</div>
+  </div>
+</nav>
+
+<!-- ───────────── HEADER ───────────── -->
+<header>
+  <button id="sidebar-toggle-btn" class="sidebar-toggle" onclick="UI.toggleSidebar()" data-i18n-title="header.toggleSidebar" title="Vis/skjul projektpanel">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+      <rect x="1" y="1.5" width="14" height="13" rx="2.5"/>
+      <line x1="5.5" y1="1.5" x2="5.5" y2="14.5"/>
+    </svg>
+  </button>
+
+  <div class="logo">
+    <div class="logo-mark"></div>
+    <span class="logo-word">Edge<span>Way</span></span>
+  </div>
+
+  <div class="htxt">
+    <h1>PipeSpec</h1>
+    <p>EN 13480-3:2024 · ANSI B36.10/19 · PED 2014/68/EU</p>
+  </div>
+
+  <div class="hd-right">
+    <!-- Standards § -->
+    <div style="position:relative;">
+      <button id="std-btn" data-i18n-title="header.standards" title="Anvendte standarder" onclick="UI.toggleStd()">§</button>
+      <div id="std-popover">
+        <div class="std-head" data-i18n="header.standards">Anvendte standarder</div>
+        <div class="std-row"><span class="std-tag">EN 13480-3:2024</span><span class="std-label" data-i18n="std.design">Dimensionering</span></div>
+        <div class="std-row"><span class="std-tag">EN 13480-1:2024</span><span class="std-label" data-i18n="std.general">Generelle krav</span></div>
+        <div class="std-row"><span class="std-tag">ANSI B36.10/19</span><span class="std-label" data-i18n="std.piping">Rørbibliotek</span></div>
+        <div class="std-row"><span class="std-tag">PED 2014/68/EU</span><span class="std-label" data-i18n="std.ped">Trykbærende udstyr</span></div>
+      </div>
+    </div>
+
+    <!-- Language segmented -->
+    <div class="theme-seg" id="lang-seg">
+      <button class="tseg" id="lseg-da" title="Dansk" onclick="UI.setLang('da')" style="width:auto;padding:0 8px;font-size:11px;font-weight:600;letter-spacing:.3px">DA</button>
+      <button class="tseg" id="lseg-en" title="English" onclick="UI.setLang('en')" style="width:auto;padding:0 8px;font-size:11px;font-weight:600;letter-spacing:.3px">EN</button>
+    </div>
+
+    <!-- Theme segmented -->
+    <div class="theme-seg" id="theme-seg">
+      <button class="tseg" id="tseg-light" title="Lys tilstand" onclick="UI.setTheme('light')">☀</button>
+      <button class="tseg" id="tseg-auto" title="Følger system" onclick="UI.setTheme('auto')">⬡</button>
+      <button class="tseg" id="tseg-dark" title="Mørk tilstand" onclick="UI.setTheme('dark')">☾</button>
+    </div>
+
+    <button id="tweaks-fab" class="tweaks-fab-hdr" onclick="UI.toggleTweaks()" title="Tweaks">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/>
+      </svg>
+    </button>
+
+    <button id="ai-open-btn" class="tweaks-fab-hdr" onclick="UI.toggleAI()" title="AI Assistent">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </button>
+
+    <button class="export-btn" onclick="UI.openReport()" data-i18n="header.exportReport">Export Report</button>
+  </div>
+</header>
+
+<!-- ───────────── REPORT MODAL ───────────── -->
+<div id="report-modal" class="modal md" onclick="if(event.target===this)UI.closeReport()">
+  <div class="modal-card">
+    <div class="modal-h">
+      <div class="modal-icon">
+        <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7l3 3 7-7"/></svg>
+      </div>
+      <div>
+        <h2>Export report</h2>
+        <div class="modal-sub">EN 13480-3:2024 · EdgeWay PipeSpec</div>
+      </div>
+    </div>
+
+    <div class="modal-section-title" data-i18n="rpt.projDetails">Project details</div>
+    <div class="block-card" style="margin-bottom:18px">
+      <div class="row">
+        <span class="row-label">Project name</span>
+        <span class="row-value"><input type="text" id="rpt-proj" class="row-input wider" placeholder="Dampdistribution…"></span>
+      </div>
+      <div class="row">
+        <span class="row-label">Project number</span>
+        <span class="row-value"><input type="text" id="rpt-num" class="row-input" placeholder="PIP-2026-017"></span>
+      </div>
+      <div class="row">
+        <span class="row-label">Revision</span>
+        <span class="row-value"><input type="text" id="rpt-rev" class="row-input" placeholder="Rev. A"></span>
+      </div>
+      <div class="row">
+        <span class="row-label">Prepared by</span>
+        <span class="row-value"><input type="text" id="rpt-by" class="row-input wider" placeholder="Mechanical Eng."></span>
+      </div>
+      <div class="row">
+        <span class="row-label">Customer</span>
+        <span class="row-value"><input type="text" id="rpt-client" class="row-input wider" placeholder="Nordic Process A/S"></span>
+      </div>
+    </div>
+
+    <div class="modal-section-title" data-i18n="rpt.includeSec">Include sections</div>
+    <div class="block-card" style="margin-bottom:18px">
+      <label class="row check-row">
+        <span class="row-label">Beregningsgrundlag <span class="row-sub" style="margin:0">parametre &amp; materiale</span></span>
+        <input type="checkbox" id="rpt-s1" class="ios-check" checked>
+      </label>
+      <label class="row check-row">
+        <span class="row-label">Vægtykkelsesberegning <span class="row-sub" style="margin:0">formler &amp; resultater</span></span>
+        <input type="checkbox" id="rpt-s2" class="ios-check" checked>
+      </label>
+      <label class="row check-row">
+        <span class="row-label">Schedule-oversigt <span class="row-sub" style="margin:0">ANSI B36.10/19</span></span>
+        <input type="checkbox" id="rpt-s3" class="ios-check" checked>
+      </label>
+      <label class="row check-row">
+        <span class="row-label">Materialedatabase-udtræk <span class="row-sub" style="margin:0">EN 10028-7 Tabel 13</span></span>
+        <input type="checkbox" id="rpt-s4" class="ios-check" checked>
+      </label>
+      <label class="row check-row">
+        <span class="row-label">PED-klassificering</span>
+        <input type="checkbox" id="rpt-s5" class="ios-check" checked>
+      </label>
+      <label class="row check-row">
+        <span class="row-label">Standardreferencer</span>
+        <input type="checkbox" id="rpt-s6" class="ios-check" checked>
+      </label>
+    </div>
+
+    <div id="rpt-warn" class="modal-warn" style="display:none">Kør en beregning først — rapporten kræver et beregningsresultat.</div>
+
+    <div class="modal-foot">
+      <button id="rpt-gen-btn" class="btn-primary" onclick="generateReport()" data-i18n="rpt.exportWord">Export as Word</button>
+      <button class="btn-ghost" onclick="UI.closeReport()">Annuller</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────── NEW PROJECT MODAL ───────────── -->
+<div id="new-proj-modal" class="modal sm" onclick="if(event.target===this)UI.closeNewProject()">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-h">
+      <div class="modal-icon" style="background:var(--acc-bg);color:var(--acc);">
+        <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
+      </div>
+      <div><h2>Nyt projekt</h2><div class="modal-sub">Gemmes lokalt automatisk</div></div>
+    </div>
+    <div class="block-card" style="margin-bottom:18px">
+      <label class="row" style="cursor:text">
+        <input type="text" id="new-proj-name" class="row-input" placeholder="Projektnavn"
+          style="width:100%;text-align:left;color:var(--text);font-weight:400;min-width:0">
+      </label>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-primary" onclick="UI.createProject()">Opret</button>
+      <button class="btn-ghost" onclick="UI.closeNewProject()">Annuller</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────── APP LAYOUT ───────────── -->
+<div class="app-layout">
+<div class="sidebar-resizer" id="sidebar-resizer" title="Drag to resize sidebar"></div>
+<div class="grid">
+
+<!-- LEFT: INPUT PANEL -->
+<aside class="side">
+
+  <!-- 1 GEOMETRY -->
+  <section class="block">
+    <div class="section-title"><span class="section-num">1</span><h3 data-i18n="sec1.title">Pipe geometry</h3></div>
+    <div class="block-card">
+      <div class="row">
+        <span class="row-label"><span data-i18n="sec1.inputMethod">Input method</span> <span class="tip" data-tip="inputMethod">?</span></span>
+        <select id="inputMethod" class="row-select" onchange="UI.toggleMethod()">
+          <option value="nps" data-i18n-opt="sec1.opt.selectNps">Select NPS</option>
+          <option value="od_only" data-i18n-opt="sec1.opt.enterOd">Enter OD only</option>
+          <option value="manual" data-i18n-opt="sec1.opt.manual">Manual — OD + wall</option>
+        </select>
+      </div>
+
+      <div id="npsBlock">
+        <div class="row">
+          <span class="row-label"><span data-i18n="sec1.nominalSize">Nominal size (NPS)</span> <span class="r">*</span> <span class="tip" data-tip="npsSelect">?</span></span>
+          <select id="npsSelect" class="row-select">
+            <option value="">Choose…</option>
+            <option>NPS ½ · DN 15</option>
+            <option>NPS 1 · DN 25</option>
+            <option>NPS 2 · DN 50</option>
+            <option>NPS 3 · DN 80</option>
+            <option>NPS 4 · DN 100</option>
+            <option>NPS 6 · DN 150</option>
+            <option>NPS 8 · DN 200</option>
+            <option>NPS 10 · DN 250</option>
+            <option>NPS 12 · DN 300</option>
+          </select>
+        </div>
+        <div id="npsInfo" class="row" style="display:none">
+          <span class="row-label" data-i18n="sec1.selectedPipe">Selected pipe</span>
+          <span class="row-value acc">OD <span id="ni_od">—</span> mm · DN <span id="ni_dn">—</span></span>
+        </div>
+      </div>
+
+      <div id="odBlock" style="display:none">
+        <div class="row">
+          <span class="row-label"><span data-i18n="sec1.outsideDiam">Outside diameter (Do)</span> <span class="r">*</span> <span class="tip" data-tip="man_od">?</span></span>
+          <span class="row-value"><input type="number" id="man_od" class="row-input" placeholder="168.3" step="0.1" min="1"><span class="unit">mm</span></span>
+        </div>
+        <div class="row">
+          <span class="row-label"><span data-i18n="sec1.dn">DN (nominal)</span> <span class="tip" data-tip="dn_field">?</span></span>
+          <span class="row-value"><input type="number" id="dn_input" class="row-input" placeholder="auto" step="1" min="1"><span class="unit">mm</span></span>
+        </div>
+      </div>
+
+      <div id="manBlock" style="display:none">
+        <div class="row">
+          <span class="row-label"><span data-i18n="sec1.outsideDiam">Outside diameter (Do)</span> <span class="r">*</span> <span class="tip" data-tip="man_od">?</span></span>
+          <span class="row-value"><input type="number" id="man_od_v" class="row-input" placeholder="168.3" step="0.1" min="1"><span class="unit">mm</span></span>
+        </div>
+        <div class="row">
+          <span class="row-label"><span data-i18n="sec1.wallThick">Actual wall thickness (en)</span> <span class="r">*</span> <span class="tip" data-tip="man_wt">?</span></span>
+          <span class="row-value"><input type="number" id="man_wt" class="row-input" placeholder="8.18" step="0.01" min="0.1"><span class="unit">mm</span></span>
+        </div>
+      </div>
+    </div>
+    <p class="block-caption" data-i18n="sec1.caption">Choose how the pipe is defined. NPS uses the ANSI B36.10/19 library.</p>
+  </section>
+
+  <!-- 2 CONDITIONS -->
+  <section class="block">
+    <div class="section-title"><span class="section-num">2</span><h3 data-i18n="sec2.title">Operating conditions</h3></div>
+    <div class="block-card">
+      <div class="row">
+        <span class="row-label"><span data-i18n="sec2.pressure">Calculation pressure (pc)</span> <span class="r">*</span> <span class="tip" data-tip="pressure">?</span></span>
+        <span class="row-value"><input type="number" id="pressure" class="row-input" placeholder="16" step="0.1" min="0"><span class="unit">bar</span></span>
+      </div>
+      <div class="row">
+        <span class="row-label"><span data-i18n="sec2.temperature">Calculation temperature (tc)</span> <span class="tip" data-tip="temperature">?</span></span>
+        <span class="row-value"><input type="number" id="temperature" class="row-input" placeholder="200" step="1" value="20"><span class="unit">°C</span></span>
+      </div>
+      <div class="row">
+        <span class="row-label"><span data-i18n="sec2.fluidType">Fluid type</span> <span class="tip" data-tip="fluidType">?</span></span>
+        <select id="fluidType" class="row-select">
+          <option value="gas1" data-i18n-opt="sec2.opt.gas1">Gas — Group 1</option>
+          <option value="gas2" selected data-i18n-opt="sec2.opt.gas2">Gas — Group 2</option>
+          <option value="liq1" data-i18n-opt="sec2.opt.liq1">Liquid — Group 1</option>
+          <option value="liq2" data-i18n-opt="sec2.opt.liq2">Liquid — Group 2</option>
+        </select>
+      </div>
+      <div id="waterPhaseBox" class="row full" style="display:none">
+        <div class="row-label" style="color:var(--info);font-weight:500;margin-bottom:4px">Water phase · H₂O</div>
+        <div id="waterPhaseResult" class="row-sub">—</div>
+      </div>
+      <div class="row">
+        <span class="row-label" data-i18n="sec2.pedCategory">PED piping category</span>
+        <span id="catAutoDisplay" class="row-value acc" data-i18n="sec2.pedAuto">Auto from DN × PS</span>
+        <span id="catManualSelect" style="display:none">
+          <select id="catManual" class="row-select">
+            <option value="Art 4,3">Art 4,3</option>
+            <option value="I">Category I</option>
+            <option value="II">Category II</option>
+            <option value="III">Category III</option>
+          </select>
+        </span>
+      </div>
+      <div class="row">
+        <span class="row-label" data-i18n="sec2.manualOverride">Manual override</span>
+        <input type="checkbox" id="catOverride" class="ios-switch" onchange="UI.toggleCatOverride()">
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 MATERIAL -->
+  <section class="block">
+    <div class="section-title"><span class="section-num">3</span><h3 data-i18n="sec3.title">Material &amp; design stress</h3></div>
+    <div class="block-card">
+      <div class="row">
+        <span class="row-label"><span data-i18n="sec3.matPreset">Material preset</span> <span class="tip" data-tip="matPreset">?</span></span>
+        <select id="matPreset" class="row-select" onchange="UI.applyPreset()">
+          <option value="custom">Custom</option>
+          <optgroup label="Carbon steel — EN 10216-2">
+            <option value="P235GH">P235GH (1.0345)</option>
+            <option value="P265GH">P265GH (1.0425)</option>
+            <option value="P355GH">P355GH (1.0473)</option>
+            <option value="P355NH">P355NH (1.0565)</option>
+          </optgroup>
+          <optgroup label="Austenitic stainless">
+            <option value="1.4301">1.4301 / 304</option>
+            <option value="1.4306">1.4306 / 304L</option>
+            <option value="1.4307">1.4307 / 304L alt</option>
+            <option value="1.4401">1.4401 / 316</option>
+            <option value="1.4404">1.4404 / 316L</option>
+            <option value="1.4406">1.4406</option>
+            <option value="1.4429">1.4429</option>
+            <option value="1.4571">1.4571 / 316Ti</option>
+            <option value="1.4541">1.4541 / 321</option>
+          </optgroup>
+          <optgroup label="Duplex stainless">
+            <option value="1.4462">1.4462 / 2205</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="row">
+        <span class="row-label"><span data-i18n="sec3.steelType">Steel type</span> <span class="tip" data-tip="steelType">?</span></span>
+        <select id="steelType" class="row-select" onchange="UI.toggleSteelRows()">
+          <option value="ferritic" data-i18n-opt="sec3.opt.ferritic">Ferritic (§5.2.1)</option>
+          <option value="austenitic" data-i18n-opt="sec3.opt.austenitic">Austenitic (§5.2.2)</option>
+        </select>
+      </div>
+      <div id="aust522block" class="row full" style="display:none;background:var(--info-bg)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="color:var(--info);font-weight:600;font-size:13px">§5.2.2 option (A ≥ 35%) <span class="tip" data-tip="aust522opt">?</span></span>
+        </div>
+        <select id="aust522opt" style="background:rgba(255,255,255,0.6);width:100%">
+          <option value="opt1">Option 1 · f = Rp1,0t / 1,5</option>
+          <option value="opt2">Option 2 · min(Rp1,0t/1,2 , Rm/3)</option>
+        </select>
+        <div id="aust522desc" style="font-size:12px;color:var(--text-2);margin-top:8px;line-height:1.45">Option 1: use only Rp1,0t divided by 1,5. Rm_t not required.</div>
+      </div>
+      <div class="row">
+        <span class="row-label" data-i18n="sec3.stressEntry">Stress entry</span>
+        <div class="row-segmented">
+          <button class="on" onclick="UI.switchTab('manual',this)">Direct</button>
+          <button onclick="UI.switchTab('compute',this)">Compute</button>
+        </div>
+      </div>
+      <div id="tp_manual" class="tp on">
+        <div class="row">
+          <span class="row-label"><span data-i18n="sec3.designStress">Design stress (f)</span> <span class="r">*</span> <span class="tip" data-tip="designStress">?</span></span>
+          <span class="row-value"><input type="number" id="designStress" class="row-input" placeholder="115" step="0.1" min="1"><span class="unit">MPa</span></span>
+        </div>
+      </div>
+      <div id="tp_compute" class="tp">
+        <div class="row">
+          <span class="row-label"><span data-i18n="sec3.tensile">Tensile strength (Rm)</span> <span class="tip" data-tip="Rm">?</span></span>
+          <span class="row-value"><input type="number" id="Rm" class="row-input" placeholder="415" step="1"><span class="unit">MPa</span></span>
+        </div>
+        <div class="row" id="row_ferritic">
+          <span class="row-label"><span data-i18n="sec3.yield">Yield (ReH / Rp0.2)</span> <span class="tip" data-tip="ReH">?</span></span>
+          <span class="row-value"><input type="number" id="ReH" class="row-input" placeholder="235" step="1"><span class="unit">MPa</span></span>
+        </div>
+        <div class="row" id="row_aust" style="display:none">
+          <span class="row-label"><span data-i18n="sec3.proof">1% Proof (Rp1.0t)</span> <span class="tip" data-tip="Rp10">?</span></span>
+          <span class="row-value"><input type="number" id="Rp10" class="row-input" placeholder="175" step="1"><span class="unit">MPa</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:18px"><span class="section-num" style="background:transparent;color:var(--text-3);border:1px solid var(--text-4)">•</span><h3 data-i18n="sec3.sf">Safety factors · §5.2</h3></div>
+    <div class="block-card">
+      <div class="row">
+        <span class="row-label" id="sf_re_label" data-i18n="sec3.sfYield">SF on yield (Re)</span>
+        <span class="row-value"><input type="number" id="sf_re" class="row-input" value="1.5" step="0.05" min="1.0" max="5.0"></span>
+      </div>
+      <div class="row">
+        <span class="row-label" id="sf_rm_label" data-i18n="sec3.sfTensile">SF on tensile (Rm)</span>
+        <span class="row-value"><input type="number" id="sf_rm" class="row-input" value="2.4" step="0.05" min="1.0" max="6.0"></span>
+      </div>
+    </div>
+    <p class="block-caption" id="sf_note">Standard ferritic: Re ÷ 1.5 · Rm ÷ 2.4</p>
+  </section>
+
+  <!-- 4 ALLOWANCES -->
+  <section class="block">
+    <div class="section-title"><span class="section-num">4</span><h3 data-i18n="sec4.title">Thickness allowances · §4.3</h3></div>
+    <div class="block-card">
+      <div class="row">
+        <span class="row-label"><span data-i18n="sec4.corrosion">Corrosion allowance (c₀)</span> <span class="tip" data-tip="c0">?</span></span>
+        <span class="row-value"><input type="number" id="c0" class="row-input" value="0.0" step="0.1" min="0"><span class="unit">mm</span></span>
+      </div>
+      <div class="row">
+        <span class="row-label"><span data-i18n="sec4.millTol">Mill tolerance (c₁)</span> <span class="tip" data-tip="c1Type">?</span></span>
+        <select id="c1Type" class="row-select" onchange="UI.toggleC1()">
+          <option value="percent" data-i18n-opt="sec4.opt.pct">Percentage</option>
+          <option value="fixed" data-i18n-opt="sec4.opt.fixed">Fixed (mm)</option>
+        </select>
+      </div>
+      <div id="c1pRow" class="row-slider">
+        <div class="row-slider-head">
+          <span class="row-label" data-i18n="sec4.millTolVal">Mill tolerance value</span>
+          <span class="rval" id="c1pv">12.5%</span>
+        </div>
+        <input type="range" id="c1pct" min="0" max="20" value="12.5" step="0.5" oninput="document.getElementById('c1pv').textContent=this.value+'%'">
+      </div>
+      <div id="c1fRow" class="row" style="display:none">
+        <span class="row-label" data-i18n="sec4.fixedTol">Fixed tolerance</span>
+        <span class="row-value"><input type="number" id="c1fix" class="row-input" value="1.0" step="0.05" min="0"><span class="unit">mm</span></span>
+      </div>
+      <div class="row">
+        <span class="row-label"><span data-i18n="sec4.thinning">Thinning allowance (c₂)</span> <span class="tip" data-tip="c2">?</span></span>
+        <span class="row-value"><input type="number" id="c2" class="row-input" value="0.0" step="0.1" min="0"><span class="unit">mm</span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 JOINT -->
+  <section class="block">
+    <div class="section-title"><span class="section-num">5</span><h3 data-i18n="sec5.title">Joint coefficient · §4.5</h3></div>
+    <div class="block-card">
+      <div class="row">
+        <span class="row-label"><span data-i18n="sec5.jc">Joint coefficient (z)</span> <span class="tip" data-tip="jc">?</span></span>
+        <select id="jc" class="row-select">
+          <option value="1.0" data-i18n-opt="sec5.opt.full">z = 1.0 · Full NDT</option>
+          <option value="0.85" data-i18n-opt="sec5.opt.random">z = 0.85 · Random NDT</option>
+          <option value="0.7" data-i18n-opt="sec5.opt.visual">z = 0.70 · Visual only</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 BATCH -->
+  <section class="block" id="batch-block">
+    <div class="section-title"><span class="section-num">6</span><h3 data-i18n="sec6.title">Batch calculation</h3></div>
+    <div class="block-card">
+      <div class="row">
+        <span class="row-label" data-i18n="sec6.enable">Enable batch</span>
+        <input type="checkbox" id="batchEnabled" class="ios-switch" onchange="UI.toggleBatch()">
+      </div>
+      <div id="batchUI" style="display:none">
+        <div class="row">
+          <span class="row-label" data-i18n="sec6.dnFrom">DN from</span>
+          <select id="batchDnFrom" class="row-select"><option>DN 15</option><option>DN 25</option><option>DN 50</option><option>DN 80</option></select>
+        </div>
+        <div class="row">
+          <span class="row-label" data-i18n="sec6.dnTo">DN to</span>
+          <select id="batchDnTo" class="row-select"><option>DN 150</option><option>DN 200</option><option>DN 300</option><option>DN 600</option></select>
+        </div>
+        <div class="row">
+          <span class="row-label" data-i18n="sec6.flanges">Inkluder flanger</span>
+          <input type="checkbox" id="batchFlangeEnabled" class="ios-switch">
+        </div>
+        <div class="row">
+          <span class="row-label" data-i18n="sec6.bends">Inkluder bøjninger</span>
+          <input type="checkbox" id="batchBendEnabled" class="ios-switch" onchange="toggleBatchBendTable()">
+        </div>
+        <div id="batchBendTable" style="display:none;margin:4px 0 8px 0;background:var(--card-2);border:1px solid var(--hair);border-radius:var(--r-sm);overflow:hidden;">
+          <div style="padding:6px 10px 4px;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--hair);">Bøjningsparametre per DN — standard 1.5×Do</div>
+          <div id="batchBendRows"></div>
+        </div>
+        <div class="row">
+          <span class="row-label" data-i18n="sec6.reducers">Inkluder reducere</span>
+          <input type="checkbox" id="batchReducerEnabled" class="ios-switch">
+        </div>
+        <div class="row">
+          <span class="row-label" data-i18n="sec6.tees">Inkluder T-stykker</span>
+          <input type="checkbox" id="batchTeeEnabled" class="ios-switch">
+        </div>
+      </div>
+    </div>
+    <p class="block-caption" data-i18n="sec6.caption">Beregner hvert DN i intervallet. Vælg hvilke fittings der skal inkluderes.</p>
+  </section>
+
+  <button class="calc-btn" onclick="UI.calculate()" data-i18n="calcBtn">Calculate</button>
+
+  <div id="rapport-liste-panel" class="queue" style="display:none">
+    <div class="queue-h">
+      <div class="queue-title">Export Queue</div>
+      <button class="queue-clear" onclick="clearReportList()">Clear</button>
+    </div>
+    <div id="rapport-liste-items"></div>
+  </div>
+</aside>
+
+<div class="resizer" id="input-resizer" title="Drag to resize input panel"></div>
+
+<!-- RIGHT: RESULTS AREA -->
+<main class="main" id="mainArea">
+  <div class="main-tabs">
+    <button class="htb on" id="htab-pipe-btn" onclick="UI.switchMainTab('pipe')"><span data-i18n="tab.pipe">Straight Pipe</span></button>
+    <button class="htb" id="htab-fittings-btn" onclick="UI.switchMainTab('fittings')"><span data-i18n="tab.fittings">Fittings &amp; Transitions</span></button>
+  </div>
+  <!-- sync targets used by original switchMainTab() -->
+  <button id="tab-pipe-btn" style="display:none" aria-hidden="true"></button>
+  <button id="tab-fittings-btn" style="display:none" aria-hidden="true"></button>
+
+  <div id="tab-pipe">
+    <div class="ph">
+      <svg xmlns="http://www.w3.org/2000/svg" width="84" height="84" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <circle cx="12" cy="12" r="4"/>
+        <line x1="2" y1="12" x2="8" y2="12"/>
+        <line x1="16" y1="12" x2="22" y2="12"/>
+        <line x1="12" y1="2" x2="12" y2="8"/>
+        <line x1="12" y1="16" x2="12" y2="22"/>
+      </svg>
+      <p data-i18n="ph.enter">Enter parameters and press Calculate</p>
+      <div class="ph-meta">EN 13480-3 :2024  ·  §6.1 Straight Pipes</div>
+    </div>
+  </div>
+
+  <div id="tab-fittings" style="display:none">
+    <div id="fittings-warn" class="sbanner info">
+      <span class="sdot"></span>
+      <span data-i18n="fit.warn">Run the straight pipe calculation first — fittings module uses pc, f, z and eord from that calculation.</span>
+    </div>
+    <div id="fittings-content" style="display:none">
+
+      <!-- BENDS -->
+      <div class="section-title"><span class="section-num" style="background:var(--info)">B</span><h3 data-i18n="fit.bends">Bends / elbows · §6.2.3.1</h3><span style="margin-left:auto;font-size:12px;color:var(--text-3)">Normal route</span></div>
+      <div class="block-card" style="margin-bottom:6px">
+        <div class="row">
+          <span class="row-label">Bend angle <span class="tip" data-tip="bend_angle">?</span></span>
+          <select id="bend_angle" class="row-select"><option value="90">90° elbow</option><option value="45">45° elbow</option><option value="custom">Custom</option></select>
+        </div>
+        <div class="row">
+          <span class="row-label">Bending radius R <span class="tip" data-tip="bend_R">?</span></span>
+          <span class="row-value"><input type="number" id="bend_R" class="row-input" placeholder="228.6" step="0.1" min="0"><span class="unit">mm</span></span>
+        </div>
+        <div class="row">
+          <span class="row-label">Pipe OD (Do) <span class="tip" data-tip="bend_od">?</span></span>
+          <span class="row-value"><input type="number" id="bend_od" class="row-input" placeholder="auto" step="0.1" min="0"><span class="unit">mm</span></span>
+        </div>
+        <div class="row" style="padding:14px 16px">
+          <button class="calc-btn" onclick="calcBend()">Calculate bend</button>
+        </div>
+      </div>
+      <div id="bend_result"></div>
+      <p class="block-caption" style="margin-bottom:24px">Intrados: e×(R/Do−0.25)/(R/Do−0.5) · Extrados: e×(R/Do+0.25)/(R/Do+0.5)</p>
+
+      <!-- REDUCERS -->
+      <div class="section-title"><span class="section-num" style="background:var(--ok)">R</span><h3 data-i18n="fit.reducers">Reducers · §6.4.4</h3></div>
+      <div class="block-card" style="margin-bottom:24px">
+        <div class="row">
+          <span class="row-label">Type</span>
+          <select id="red_type" class="row-select"><option value="conc">Concentric</option><option value="ecc">Eccentric</option></select>
+        </div>
+        <div class="row">
+          <span class="row-label">D large <span class="tip" data-tip="red_dlarge">?</span></span>
+          <span class="row-value"><input type="number" id="red_dl" class="row-input" placeholder="168.3" step="0.1" min="1"><span class="unit">mm</span></span>
+        </div>
+        <div class="row">
+          <span class="row-label">D small <span class="tip" data-tip="red_dsmall">?</span></span>
+          <span class="row-value"><input type="number" id="red_ds" class="row-input" placeholder="88.9" step="0.1" min="1"><span class="unit">mm</span></span>
+        </div>
+        <div class="row">
+          <span class="row-label">Cone length L <span class="tip" data-tip="red_L">?</span></span>
+          <span class="row-value"><input type="number" id="red_L" class="row-input" placeholder="150" step="1" min="1"><span class="unit">mm</span></span>
+        </div>
+        <div class="row" style="padding:14px 16px">
+          <button class="calc-btn" onclick="calcReducer()">Calculate reducer</button>
+        </div>
+      </div>
+      <div id="reducer_result"></div>
+
+      <!-- T-PIECES -->
+      <div class="section-title" style="margin-top:24px"><span class="section-num" style="background:#5856D6">T</span><h3 data-i18n="fit.tpieces">T-pieces / branches · §8</h3></div>
+      <div class="block-card" style="margin-bottom:24px">
+        <div class="row">
+          <span class="row-label">T-piece type <span class="tip" data-tip="tee_type">?</span></span>
+          <select id="tee_type" class="row-select"><option value="forged">Forged tee (EN 10253)</option><option value="fab">Fabricated / welded</option></select>
+        </div>
+        <div class="row">
+          <span class="row-label">Header OD <span class="tip" data-tip="tee_header">?</span></span>
+          <span class="row-value"><input type="number" id="tee_header_od" class="row-input" placeholder="168.3" step="0.1" min="1"><span class="unit">mm</span></span>
+        </div>
+        <div class="row">
+          <span class="row-label">Branch OD <span class="tip" data-tip="tee_branch">?</span></span>
+          <span class="row-value"><input type="number" id="tee_branch_od" class="row-input" placeholder="88.9" step="0.1" min="1"><span class="unit">mm</span></span>
+        </div>
+        <div class="row" style="padding:14px 16px">
+          <button class="calc-btn" onclick="calcTee()">Calculate t-piece</button>
+        </div>
+      </div>
+      <div id="tee_result"></div>
+
+      <!-- FLANGES -->
+      <div class="section-title" style="margin-top:24px"><span class="section-num" style="background:#FF3B30">F</span><h3 data-i18n="fit.flanges">Flanges · EN 1092-1 Annex F + G</h3></div>
+      <div class="block-card" style="margin-bottom:6px">
+        <div class="row">
+          <span class="row-label">Material group <span class="tip" data-tip="flange_mat">?</span></span>
+          <select id="fl_mat" class="row-select"><option value="3E0_s50">3E0 · P235GH (≤50 mm)</option><option value="3E0_s150">3E0 · P235GH (50–150)</option><option value="10E0">10E0 · 304L</option><option value="11E0">11E0 · 304</option><option value="12E0_541">12E0 · 321</option><option value="13E0">13E0 · 316L</option><option value="14E0" selected>14E0 · 316</option><option value="15E0">15E0 · 316Ti</option><option value="16E0">16E0 · 2205</option></select>
+        </div>
+        <div class="row">
+          <span class="row-label">Design pressure pc <span id="fl_pc_sync_btn" style="margin-left:6px;font-size:12px;color:var(--acc);cursor:pointer;display:none">↻ Sync</span></span>
+          <span class="row-value"><input type="number" id="fl_pc" class="row-input" placeholder="auto" step="0.1" min="0"><span class="unit">bar</span></span>
+        </div>
+        <div class="row">
+          <span class="row-label">Design temperature tc <span id="fl_T_sync_btn" style="margin-left:6px;font-size:12px;color:var(--acc);cursor:pointer;display:none">↻ Sync</span></span>
+          <span class="row-value"><input type="number" id="fl_T" class="row-input" placeholder="210" step="10" value="20"><span class="unit">°C</span></span>
+        </div>
+        <div class="row">
+          <span class="row-label">DN</span>
+          <span class="row-value"><input type="number" id="fl_dn" class="row-input" placeholder="auto" step="1" min="6"><span class="unit">mm</span></span>
+        </div>
+        <div class="row">
+          <span class="row-label">Flange type <span class="tip" data-tip="flange_type">?</span></span>
+          <select id="fl_type" class="row-select"><option value="11">Type 11 · Weld neck</option><option value="01">Type 01 · Plate</option><option value="13">Type 13 · Threaded</option></select>
+        </div>
+        <div class="row">
+          <span class="row-label">Manual PN <span class="tip" data-tip="flange_pn">?</span></span>
+          <select id="fl_pn_manual" class="row-select"><option value="">Auto</option><option value="6">PN 6</option><option value="10">PN 10</option><option value="16">PN 16</option><option value="25">PN 25</option><option value="40">PN 40</option><option value="63">PN 63</option><option value="100">PN 100</option><option value="160">PN 160</option><option value="250">PN 250</option></select>
+        </div>
+        <div class="row" style="padding:14px 16px">
+          <button class="calc-btn" onclick="calcFlange()">Calculate flange rating</button>
+        </div>
+      </div>
+      <div id="flange_result"></div>
+      <p class="block-caption" style="margin-bottom:24px">PN rating is selected automatically from material group, pc and tc.</p>
+
+    </div>
+  </div>
+</main>
+
+</div>
+</div>
+
+<!-- ───────────── AI DRAWER ───────────── -->
+<div class="ai-panel" id="ai-panel">
+  <div class="ai-resize-handle" id="ai-resize-handle"></div>
+
+  <!-- Header -->
+  <div class="ai-ph">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <div class="ai-ph-title">Edge<span style="color:var(--acc)">Way</span> <span style="color:var(--acc)">AI</span></div>
+    <button class="ai-ph-close" onclick="window.AI&&AI.clearChat()" title="Ryd chat">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 9-9M3 3v9h9"/></svg>
+    </button>
+    <button class="ai-ph-close" onclick="UI.closeAI()" title="Luk">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <!-- Collapsible settings drawer -->
+  <div id="ai-settings-drawer" class="ai-settings-drawer">
+    <div class="ai-settings-inner">
+      <div class="ai-settings-row">
+        <span class="ai-settings-label">AI API-nøgle</span>
+        <span id="ai-key-status" class="ai-key-status-badge">Ingen nøgle</span>
+      </div>
+      <div id="ai-key-row" class="ai-key-row">
+        <input type="password" id="ai-apikey-input" placeholder="sk-ant-api03-…" class="ai-key-input"
+          onfocus="this.type='text'" onblur="if(this.value)this.type='password'"
+          onkeydown="if(event.key==='Enter')AI.saveKey(this.value.trim())">
+        <button class="ai-key-save-btn" onclick="AI.saveKey(document.getElementById('ai-apikey-input').value.trim())">Gem</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="ai-messages" id="ai-messages"></div>
+
+  <!-- Input resize handle -->
+  <div class="ai-inp-resize" id="ai-inp-resize"></div>
+
+  <!-- Input area -->
+  <div class="ai-input-area" id="ai-input-area">
+    <div class="ai-attach-bar" id="ai-attach-bar"></div>
+    <div class="ai-input-row">
+      <button class="ai-img-btn" title="Vedhæft billede, PDF eller tekstfil" onclick="window.AI?AI.openFilePicker():document.getElementById('ai-file-input').click()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.41 17.41a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+        </svg>
+      </button>
+      <textarea id="ai-input" class="ai-textarea" rows="3" placeholder="Beskriv rørledningen, upload filer, eller træk dem hertil…"
+        oninput="this.style.height='auto';this.style.height=Math.max(72,Math.min(this.scrollHeight,320))+'px'"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();document.getElementById('ai-send-btn').click()}"></textarea>
+      <button id="ai-send-btn" class="ai-send-btn">Send</button>
+    </div>
+    <input type="file" id="ai-file-input" accept="image/*,application/pdf,.pdf,.txt,.csv" multiple style="display:none"
+      onchange="if(window.AI){Array.from(this.files).forEach(f=>AI.handleFileUpload(f));this.value=''}">
+    <div class="ai-foot">Enter sender · Shift+Enter ny linje · Billeder · PDF · TXT</div>
+  </div>
+</div>
+
+<!-- ───────────── AI FAB ───────────── -->
+<button class="ai-fab" onclick="UI.toggleAI()" title="AI Assistent">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  AI
+</button>
+
+<div class="tweaks-panel" id="tweaks-panel">
+  <div class="tw-h">
+    <div class="tw-title">Tweaks</div>
+    <button class="tw-close" onclick="UI.toggleTweaks()">✕</button>
+  </div>
+  <div class="tw-section">
+    <div class="tw-label">Accent</div>
+    <div class="tw-swatches" id="tw-accent">
+      <button class="tw-swatch on" data-acc="#2E6896" style="--c:#2E6896"></button>
+      <button class="tw-swatch" data-acc="#0071E3" style="--c:#0071E3"></button>
+      <button class="tw-swatch" data-acc="#1D5BBF" style="--c:#1D5BBF"></button>
+      <button class="tw-swatch" data-acc="#3E63DD" style="--c:#3E63DD"></button>
+      <button class="tw-swatch" data-acc="#0D7C66" style="--c:#0D7C66"></button>
+      <button class="tw-swatch" data-acc="#1D1D1F" style="--c:#1D1D1F"></button>
+    </div>
+  </div>
+  <div class="tw-section">
+    <div class="tw-label">Density</div>
+    <div class="tw-seg" id="tw-density">
+      <button data-d="compact">Compact</button>
+      <button class="on" data-d="default">Default</button>
+      <button data-d="comfortable">Roomy</button>
+    </div>
+  </div>
+  <div class="tw-section">
+    <div class="tw-label">Theme</div>
+    <div class="tw-seg" id="tw-theme">
+      <button class="on" data-t="light">Light</button>
+      <button data-t="dark">Dark</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tooltip copy (mini in-page tooltip system) -->
+<script>
+// Tooltip dictionary used by the legacy engine
+window.TT = {
+  inputMethod: { t: 'INPUT METHOD', b: 'Choose how the pipe geometry is defined: pick a standardised NPS size, enter outside diameter only, or enter both OD and actual wall thickness manually.', r: 'EN 13480-3:2024 §6.1' },
+  npsSelect:   { t: 'NPS', b: 'Nominal Pipe Size — selects OD and standard schedule wall thicknesses from the ANSI B36.10/19 library.', r: 'ANSI B36.10/19' },
+  pressure:    { t: 'CALCULATION PRESSURE pc', b: 'Internal design (calculation) pressure used to size the wall. Maximum allowable working pressure × safety margin per company / project policy.', r: 'EN 13480-3:2024 §4.2' },
+  temperature: { t: 'CALCULATION TEMPERATURE tc', b: 'Maximum metal temperature at which the design pressure can occur. Drives the design stress lookup.', r: 'EN 13480-3:2024 §4.2' },
+  fluidType:   { t: 'FLUID TYPE', b: 'Determines PED 2014/68/EU group and category. Group 1 = flammable / toxic / oxidising; Group 2 = everything else. Gas and liquid have different threshold tables.', r: 'PED 2014/68/EU Annex II' },
+  matPreset:   { t: 'MATERIAL PRESET', b: 'Pre-loads steel type, Re/Rp, Rm and temperature dependence for common piping materials. Choose Custom to enter values manually.', r: 'EN 10216-2 · EN 10028-7' },
+  designStress:{ t: 'DESIGN STRESS f', b: 'Allowable stress used in the wall thickness formula. Either entered directly or computed from Rm/Re and safety factors.', r: 'EN 13480-3:2024 §5.2' },
+  jc:          { t: 'JOINT COEFFICIENT z', b: 'Reduces design stress to account for weld integrity. z = 1.0 for seamless or fully radiographed welds; lower for partial / no NDT.', r: 'EN 13480-3:2024 §4.5' },
+};
+</script>
+
+<!-- App JS (light prototype interactions only) -->
+<script>
+/* ─────────────────────────────────────────────────────────────────────────
+   PipeSpec — Prototype interactions only (no calc engine, no API calls)
+   ───────────────────────────────────────────────────────────────────── */
+
+const UI = {
+
+  /* ── THEME ─────────────────────────────────────────────────────────── */
+  setTheme(mode) {
+    const root = document.documentElement;
+    if (mode === 'auto') {
+      const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+      root.setAttribute('data-theme', dark ? 'dark' : 'light');
+    } else {
+      root.setAttribute('data-theme', mode);
+    }
+    document.querySelectorAll('.tseg').forEach(b => b.classList.remove('on'));
+    const btn = document.getElementById('tseg-' + mode);
+    if (btn) btn.classList.add('on');
+    // sync tweaks panel theme toggle
+    document.querySelectorAll('#tw-theme button').forEach(b => {
+      b.classList.toggle('on', b.dataset.t === (mode === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : mode));
+    });
+    localStorage.setItem('ps-theme', mode);
+  },
+
+  /* ── SIDEBAR ───────────────────────────────────────────────────────── */
+  toggleSidebar() {
+    const sb = document.getElementById('projSidebar');
+    sb.classList.remove('peeking');
+    const collapsed = sb.classList.toggle('collapsed');
+    document.body.classList.toggle('sidebar-collapsed', collapsed);
+    localStorage.setItem('ps-sidebar', collapsed ? '1' : '0');
+  },
+
+  /* ── STANDARDS POPOVER ─────────────────────────────────────────────── */
+  toggleStd() {
+    document.getElementById('std-popover').classList.toggle('open');
+  },
+
+  /* ── INPUT METHOD ──────────────────────────────────────────────────── */
+  toggleMethod() {
+    const m = document.getElementById('inputMethod').value;
+    document.getElementById('npsBlock').style.display = (m === 'nps') ? 'block' : 'none';
+    document.getElementById('odBlock').style.display  = (m === 'od_only') ? 'block' : 'none';
+    document.getElementById('manBlock').style.display = (m === 'manual') ? 'block' : 'none';
+  },
+
+  /* ── PED category override ─────────────────────────────────────────── */
+  toggleCatOverride() {
+    const on = document.getElementById('catOverride').checked;
+    document.getElementById('catAutoDisplay').style.display = on ? 'none' : 'block';
+    document.getElementById('catManualSelect').style.display = on ? 'block' : 'none';
+  },
+
+  /* ── Steel type rows ───────────────────────────────────────────────── */
+  toggleSteelRows() {
+    const s = document.getElementById('steelType').value;
+    const aust = (s === 'austenitic');
+    document.getElementById('aust522block').style.display = aust ? 'block' : 'none';
+    document.getElementById('row_ferritic').style.display = aust ? 'none' : 'grid';
+    document.getElementById('row_aust').style.display = aust ? 'grid' : 'none';
+    // tweak labels
+    document.getElementById('sf_re_label').textContent =
+      aust ? 'SF on proof (Rp1.0)' : 'SF on yield (Re)';
+    document.getElementById('sf_note').innerHTML =
+      aust
+      ? 'Austenitic §5.2.2: <span style="color:var(--info)">Rp1,0 ÷ 1.5</span> · <span style="color:var(--info)">Rm ÷ 3.0</span>'
+      : 'Standard ferritic: <span style="color:var(--info)">Re ÷ 1.5</span> · <span style="color:var(--info)">Rm ÷ 2.4</span>';
+  },
+
+  /* ── Material preset → applies steel type + suggested values ───────── */
+  applyPreset() {
+    const v = document.getElementById('matPreset').value;
+    const aust = /^1\.4(30|40|42|46|54|57)/.test(v);
+    document.getElementById('steelType').value = aust ? 'austenitic' : 'ferritic';
+    this.toggleSteelRows();
+  },
+
+  /* ── Tabs inside material block (Manual / Compute) ─────────────────── */
+  switchTab(which, btn) {
+    document.querySelectorAll('.tabs .tb').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('tp_manual').classList.toggle('on', which === 'manual');
+    document.getElementById('tp_compute').classList.toggle('on', which === 'compute');
+  },
+
+  /* ── Mill tolerance type ───────────────────────────────────────────── */
+  toggleC1() {
+    const t = document.getElementById('c1Type').value;
+    document.getElementById('c1pRow').style.display = (t === 'percent') ? 'grid' : 'none';
+    document.getElementById('c1fRow').style.display = (t === 'fixed') ? 'grid' : 'none';
+  },
+
+  /* ── Batch ─────────────────────────────────────────────────────────── */
+  toggleBatch() {
+    document.getElementById('batchUI').style.display =
+      document.getElementById('batchEnabled').checked ? 'block' : 'none';
+  },
+
+  /* ── Calculate ─────────────────────────────────────────────────────── */
+  calculate() {
+    if (document.getElementById('batchEnabled')?.checked && typeof runBatchCalculate === 'function') {
+      runBatchCalculate();
+    } else if (typeof calculate === 'function' && calculate !== UI.calculate) {
+      calculate();
+    }
+  },
+
+  /* ── Main result tabs (Straight Pipe / Fittings) ───────────────────── */
+  switchMainTab(which) {
+    document.querySelectorAll('.main-tabs .htb').forEach(b => b.classList.remove('on'));
+    document.getElementById('htab-' + which + '-btn').classList.add('on');
+    document.getElementById('tab-pipe').style.display = (which === 'pipe') ? 'block' : 'none';
+    document.getElementById('tab-fittings').style.display = (which === 'fittings') ? 'block' : 'none';
+  },
+
+  /* ── AI drawer ─────────────────────────────────────────────────────── */
+  openAI() {
+    document.getElementById('ai-panel').classList.add('open');
+    document.querySelector('.ai-fab')?.classList.add('on');
+    document.getElementById('ai-open-btn')?.classList.add('on');
+  },
+  closeAI() {
+    document.getElementById('ai-panel').classList.remove('open');
+    document.querySelector('.ai-fab')?.classList.remove('on');
+    document.getElementById('ai-open-btn')?.classList.remove('on');
+  },
+  toggleAI() {
+    const open = document.getElementById('ai-panel').classList.contains('open');
+    if (open) this.closeAI(); else this.openAI();
+  },
+
+  /* ── Report modal ──────────────────────────────────────────────────── */
+  openReport()  {
+    if (typeof openReportModal === 'function') openReportModal();
+    else document.getElementById('report-modal').classList.add('open');
+  },
+  closeReport() {
+    if (typeof closeReportModal === 'function') closeReportModal();
+    else document.getElementById('report-modal').classList.remove('open');
+  },
+
+  /* ── New project modal ─────────────────────────────────────────────── */
+  openNewProject()  { document.getElementById('new-proj-modal').classList.add('open'); },
+  closeNewProject() { document.getElementById('new-proj-modal').classList.remove('open'); },
+
+  /* ── Tweaks panel ──────────────────────────────────────────────────── */
+  toggleTweaks() { document.getElementById('tweaks-panel').classList.toggle('open'); },
+};
+
+/* ── Per-DN bend parameter table ─────────────────────────────────────────── */
+function _buildBendRows() {
+  const fromDN = parseInt(document.getElementById('batchDnFrom')?.value) || 0;
+  const toDN   = parseInt(document.getElementById('batchDnTo')?.value)   || 9999;
+  const pipes  = (typeof PIPES !== 'undefined') ? PIPES.filter(p => p.dn >= fromDN && p.dn <= toDN) : [];
+  const container = document.getElementById('batchBendRows');
+  if (!container) return;
+
+  // Preserve existing user values before rebuilding
+  const saved = {};
+  container.querySelectorAll('input[id^="batchBendR_"]').forEach(el => {
+    const dn = el.id.replace('batchBendR_', '');
+    saved['R_' + dn] = el.value;
+  });
+  container.querySelectorAll('select[id^="batchBendAngle_"]').forEach(el => {
+    const dn = el.id.replace('batchBendAngle_', '');
+    saved['A_' + dn] = el.value;
+  });
+
+  container.innerHTML = pipes.map(p => {
+    const defR  = (1.5 * p.od).toFixed(0);
+    const savedR = saved['R_' + p.dn] || '';
+    const savedA = saved['A_' + p.dn] || '90';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:5px 10px;border-bottom:1px solid var(--hair);font-size:11px;font-family:var(--mono)">'
+      + '<span style="width:44px;color:var(--text-2)">DN' + p.dn + '</span>'
+      + '<span style="color:var(--text-3)">R:</span>'
+      + '<input id="batchBendR_' + p.dn + '" type="number" min="0" placeholder="' + defR + '" value="' + savedR + '" '
+      + 'style="width:68px;padding:2px 5px;background:var(--card);border:1px solid var(--hair);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px"> mm'
+      + ' &nbsp;<span style="color:var(--text-3)">Vinkel:</span>'
+      + '<select id="batchBendAngle_' + p.dn + '" style="padding:2px 4px;background:var(--card);border:1px solid var(--hair);border-radius:4px;color:var(--text);font-size:11px;font-family:var(--mono)">'
+      + '<option value="90"' + (savedA === '90' ? ' selected' : '') + '>90°</option>'
+      + '<option value="45"' + (savedA === '45' ? ' selected' : '') + '>45°</option>'
+      + '<option value="60"' + (savedA === '60' ? ' selected' : '') + '>60°</option>'
+      + '<option value="30"' + (savedA === '30' ? ' selected' : '') + '>30°</option>'
+      + '</select></div>';
+  }).join('');
+}
+
+function toggleBatchBendTable() {
+  const cb  = document.getElementById('batchBendEnabled');
+  const tbl = document.getElementById('batchBendTable');
+  if (!cb || !tbl) return;
+  if (cb.checked) {
+    tbl.style.display = '';
+    _buildBendRows();
+  } else {
+    tbl.style.display = 'none';
+  }
+}
+
+// Rebuild bend table when DN range changes (if bend table is visible)
+document.addEventListener('DOMContentLoaded', () => {
+  ['batchDnFrom', 'batchDnTo'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', () => {
+      if (document.getElementById('batchBendEnabled')?.checked) _buildBendRows();
+    });
+  });
+});
+
+document.addEventListener('click', e => {
+  const panel = document.getElementById('tweaks-panel');
+  const fab   = document.getElementById('tweaks-fab');
+  if (panel?.classList.contains('open') && !panel.contains(e.target) && !fab?.contains(e.target)) {
+    panel.classList.remove('open');
+  }
+});
+window.UI = UI;
+
+/* ── LANGUAGE / i18n ────────────────────────────────────────────────────── */
+const I18N = {
+  da: {
+    'sidebar.collapse':       'Skjul panel (Ctrl+B)',
+    'sidebar.projects':       'Projekter',
+    'sidebar.newProject':     '+ Nyt projekt',
+    'sidebar.autosave':       'Auto-gem aktiv',
+    'header.toggleSidebar':   'Vis/skjul projektpanel',
+    'header.standards':       'Anvendte standarder',
+    'header.exportReport':    'Eksporter rapport',
+    'std.design':             'Dimensionering',
+    'std.general':            'Generelle krav',
+    'std.piping':             'Rørbibliotek',
+    'std.ped':                'Trykbærende udstyr',
+    'sec1.title':             'Rørgeometri',
+    'sec1.inputMethod':       'Inputmetode',
+    'sec1.opt.selectNps':     'Vælg NPS',
+    'sec1.opt.enterOd':       'Angiv kun YD',
+    'sec1.opt.manual':        'Manuel — YD + vægtykkelse',
+    'sec1.nominalSize':       'Nominel størrelse (NPS)',
+    'sec1.selectedPipe':      'Valgt rør',
+    'sec1.outsideDiam':       'Ydre diameter (Do)',
+    'sec1.dn':                'DN (nominel)',
+    'sec1.wallThick':         'Faktisk vægtykkelse (en)',
+    'sec1.caption':           'Vælg hvordan røret defineres. NPS bruger ANSI B36.10/19 biblioteket.',
+    'sec2.title':             'Driftsforhold',
+    'sec2.pressure':          'Beregningsstryk (pc)',
+    'sec2.temperature':       'Beregningstemperatur (tc)',
+    'sec2.fluidType':         'Fluidtype',
+    'sec2.opt.gas1':          'Gas — Gruppe 1',
+    'sec2.opt.gas2':          'Gas — Gruppe 2',
+    'sec2.opt.liq1':          'Væske — Gruppe 1',
+    'sec2.opt.liq2':          'Væske — Gruppe 2',
+    'sec2.pedCategory':       'PED rørkategori',
+    'sec2.pedAuto':           'Auto fra DN × PS',
+    'sec2.manualOverride':    'Manuel overstyring',
+    'sec3.title':             'Materiale & designspænding',
+    'sec3.matPreset':         'Materialeforudindstilling',
+    'sec3.steelType':         'Ståltype',
+    'sec3.opt.ferritic':      'Ferritisk (§5.2.1)',
+    'sec3.opt.austenitic':    'Austenitisk (§5.2.2)',
+    'sec3.stressEntry':       'Spændingsindtastning',
+    'sec3.direct':            'Direkte',
+    'sec3.compute':           'Beregn',
+    'sec3.designStress':      'Designspænding (f)',
+    'sec3.tensile':           'Trækstyrke (Rm)',
+    'sec3.yield':             'Flydespænding (ReH / Rp0.2)',
+    'sec3.proof':             '1% Proof (Rp1.0t)',
+    'sec3.sf':                'Sikkerhedsfaktorer · §5.2',
+    'sec3.sfYield':           'SF på flydespænding (Re)',
+    'sec3.sfTensile':         'SF på trækstyrke (Rm)',
+    'sec4.title':             'Vægtykkelsestillæg · §4.3',
+    'sec4.corrosion':         'Korrosionstillæg (c₀)',
+    'sec4.millTol':           'Valsetolerance (c₁)',
+    'sec4.opt.pct':           'Procentvis',
+    'sec4.opt.fixed':         'Fast (mm)',
+    'sec4.millTolVal':        'Toleranceværdi',
+    'sec4.fixedTol':          'Fast tolerance',
+    'sec4.thinning':          'Udtyndingstillæg (c₂)',
+    'sec5.title':             'Samlingskoefficient · §4.5',
+    'sec5.jc':                'Samlingskoefficient (z)',
+    'sec5.opt.full':          'z = 1,0 · Fuld NDT',
+    'sec5.opt.random':        'z = 0,85 · Stikprøve NDT',
+    'sec5.opt.visual':        'z = 0,70 · Kun visuel',
+    'sec6.title':             'Batchberegning',
+    'sec6.enable':            'Aktivér batch',
+    'sec6.dnFrom':            'DN fra',
+    'sec6.dnTo':              'DN til',
+    'sec6.flanges':           'Inkluder flanger',
+    'sec6.bends':             'Inkluder bøjninger',
+    'sec6.reducers':          'Inkluder reducere',
+    'sec6.tees':              'Inkluder T-stykker',
+    'sec6.caption':           'Beregner hvert DN i intervallet. Vælg hvilke fittings der skal inkluderes.',
+    'calcBtn':                'Beregn',
+    'tab.pipe':               'Lige rør',
+    'tab.fittings':           'Fittings & overgange',
+    'ph.enter':               'Angiv parametre og tryk Beregn',
+    'fit.warn':               'Kør den lige rørberegning først — fittingsmodulet bruger pc, f, z og eord fra den beregning.',
+    'fit.bends':              'Bøjninger / albuer · §6.2.3.1',
+    'fit.reducers':           'Reduktioner · §6.4.4',
+    'fit.tpieces':            'T-stykker / forgreninger · §8',
+    'fit.flanges':            'Flanger · EN 1092-1 Annex F + G',
+    'rpt.projDetails':        'Projektdetaljer',
+    'rpt.includeSec':         'Medtag afsnit',
+    'rpt.exportWord':         'Eksporter som Word',
+  },
+  en: {
+    'sidebar.collapse':       'Collapse panel (Ctrl+B)',
+    'sidebar.projects':       'Projects',
+    'sidebar.newProject':     '+ New project',
+    'sidebar.autosave':       'Auto-save active',
+    'header.toggleSidebar':   'Show/hide project panel',
+    'header.standards':       'Applied standards',
+    'header.exportReport':    'Export Report',
+    'std.design':             'Design',
+    'std.general':            'General requirements',
+    'std.piping':             'Pipe library',
+    'std.ped':                'Pressure-bearing equipment',
+    'sec1.title':             'Pipe geometry',
+    'sec1.inputMethod':       'Input method',
+    'sec1.opt.selectNps':     'Select NPS',
+    'sec1.opt.enterOd':       'Enter OD only',
+    'sec1.opt.manual':        'Manual  —  OD + wall',
+    'sec1.nominalSize':       'Nominal size (NPS)',
+    'sec1.selectedPipe':      'Selected pipe',
+    'sec1.outsideDiam':       'Outside diameter (Do)',
+    'sec1.dn':                'DN (nominal)',
+    'sec1.wallThick':         'Actual wall thickness (en)',
+    'sec1.caption':           'Choose how the pipe is defined. NPS uses the ANSI B36.10/19 library.',
+    'sec2.title':             'Operating conditions',
+    'sec2.pressure':          'Calculation pressure (pc)',
+    'sec2.temperature':       'Calculation temperature (tc)',
+    'sec2.fluidType':         'Fluid type',
+    'sec2.opt.gas1':          'Gas  —  Group 1',
+    'sec2.opt.gas2':          'Gas  —  Group 2',
+    'sec2.opt.liq1':          'Liquid  —  Group 1',
+    'sec2.opt.liq2':          'Liquid  —  Group 2',
+    'sec2.pedCategory':       'PED piping category',
+    'sec2.pedAuto':           'Auto from DN × PS',
+    'sec2.manualOverride':    'Manual override',
+    'sec3.title':             'Material & design stress',
+    'sec3.matPreset':         'Material preset',
+    'sec3.steelType':         'Steel type',
+    'sec3.opt.ferritic':      'Ferritic (§5.2.1)',
+    'sec3.opt.austenitic':    'Austenitic (§5.2.2)',
+    'sec3.stressEntry':       'Stress entry',
+    'sec3.direct':            'Direct',
+    'sec3.compute':           'Compute',
+    'sec3.designStress':      'Design stress (f)',
+    'sec3.tensile':           'Tensile strength (Rm)',
+    'sec3.yield':             'Yield (ReH / Rp0.2)',
+    'sec3.proof':             '1% Proof (Rp1.0t)',
+    'sec3.sf':                'Safety factors · §5.2',
+    'sec3.sfYield':           'SF on yield (Re)',
+    'sec3.sfTensile':         'SF on tensile (Rm)',
+    'sec4.title':             'Thickness allowances · §4.3',
+    'sec4.corrosion':         'Corrosion allowance (c₀)',
+    'sec4.millTol':           'Mill tolerance (c₁)',
+    'sec4.opt.pct':           'Percentage',
+    'sec4.opt.fixed':         'Fixed (mm)',
+    'sec4.millTolVal':        'Mill tolerance value',
+    'sec4.fixedTol':          'Fixed tolerance',
+    'sec4.thinning':          'Thinning allowance (c₂)',
+    'sec5.title':             'Joint coefficient · §4.5',
+    'sec5.jc':                'Joint coefficient (z)',
+    'sec5.opt.full':          'z = 1.0 · Full NDT',
+    'sec5.opt.random':        'z = 0.85 · Random NDT',
+    'sec5.opt.visual':        'z = 0.70 · Visual only',
+    'sec6.title':             'Batch calculation',
+    'sec6.enable':            'Enable batch',
+    'sec6.dnFrom':            'DN from',
+    'sec6.dnTo':              'DN to',
+    'sec6.flanges':           'Include flanges',
+    'sec6.bends':             'Include bends',
+    'sec6.reducers':          'Include reducers',
+    'sec6.tees':              'Include tees',
+    'sec6.caption':           'Calculates every DN in range. Select which fittings to include.',
+    'calcBtn':                'Calculate',
+    'tab.pipe':               'Straight Pipe',
+    'tab.fittings':           'Fittings & Transitions',
+    'ph.enter':               'Enter parameters and press Calculate',
+    'fit.warn':               'Run the straight pipe calculation first — fittings module uses pc, f, z and eord from that calculation.',
+    'fit.bends':              'Bends / elbows · §6.2.3.1',
+    'fit.reducers':           'Reducers · §6.4.4',
+    'fit.tpieces':            'T-pieces / branches · §8',
+    'fit.flanges':            'Flanges · EN 1092-1 Annex F + G',
+    'rpt.projDetails':        'Project details',
+    'rpt.includeSec':         'Include sections',
+    'rpt.exportWord':         'Export as Word',
+  }
+};
+
+UI.setLang = function(lang) {
+  const dict = I18N[lang];
+  if (!dict) return;
+  // textContent nodes
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (dict[key] !== undefined) el.textContent = dict[key];
+  });
+  // title attributes
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.dataset.i18nTitle;
+    if (dict[key] !== undefined) el.title = dict[key];
+  });
+  // <option> text — data-i18n-opt on the option element itself
+  document.querySelectorAll('[data-i18n-opt]').forEach(el => {
+    const key = el.dataset.i18nOpt;
+    if (dict[key] !== undefined) el.textContent = dict[key];
+  });
+  // Refresh any Apple-select triggers that were built from annotated <select>s
+  document.querySelectorAll('select.row-select[data-appleized]').forEach(sel => {
+    const trig = sel.previousElementSibling;
+    if (trig && trig.classList.contains('apple-select')) {
+      const opt = sel.options[sel.selectedIndex];
+      const span = trig.querySelector('.apple-select-text');
+      if (opt && span) span.textContent = opt.textContent.trim();
+    }
+  });
+  // Update active lang buttons
+  document.querySelectorAll('#lang-seg .tseg').forEach(b => b.classList.remove('on'));
+  const active = document.getElementById('lseg-' + lang);
+  if (active) active.classList.add('on');
+  // Persist
+  localStorage.setItem('ps-lang', lang);
+  document.documentElement.setAttribute('lang', lang);
+};
+
+/* ── SIDEBAR PEEK + Ctrl+B ─────────────────────────────────────────────── */
+(() => {
+  const sb       = document.getElementById('projSidebar');
+  const peekZone = document.getElementById('sidebarPeekZone');
+  let peekTimer  = null;
+
+  function startPeek() {
+    clearTimeout(peekTimer);
+    if (!sb.classList.contains('collapsed')) return;
+    sb.classList.add('peeking');
+  }
+  function endPeek(e) {
+    if (!sb.classList.contains('peeking')) return;
+    peekTimer = setTimeout(() => {
+      if (!sb.matches(':hover') && !peekZone.matches(':hover')) {
+        sb.classList.remove('peeking');
+      }
+    }, 200);
+  }
+
+  peekZone?.addEventListener('mouseenter', startPeek);
+  sb?.addEventListener('mouseleave', endPeek);
+  peekZone?.addEventListener('mouseleave', endPeek);
+  sb?.addEventListener('mouseenter', () => clearTimeout(peekTimer));
+
+  /* Restore saved state */
+  if (localStorage.getItem('ps-sidebar') === '1') {
+    sb?.classList.add('collapsed');
+    document.body.classList.add('sidebar-collapsed');
+  }
+
+  /* Ctrl+B shortcut */
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+      e.preventDefault();
+      UI.toggleSidebar();
+    }
+  });
+})();
+
+/* ── TOOLTIP SYSTEM ────────────────────────────────────────────────────── */
+(() => {
+  const tip = document.getElementById('tooltip');
+  const tT = document.getElementById('tt-title');
+  const tB = document.getElementById('tt-body');
+  const tR = document.getElementById('tt-ref');
+  let lastTarget = null;
+
+  document.addEventListener('mouseover', e => {
+    const t = e.target.closest('.tip');
+    if (!t) return;
+    const key = t.dataset.tip;
+    const data = (window.TT && window.TT[key]) || null;
+    if (!data) return;
+    tT.textContent = data.t || key;
+    tB.textContent = data.b || '';
+    if (data.r) { tR.textContent = data.r; tR.style.display = 'block'; } else { tR.style.display = 'none'; }
+    const r = t.getBoundingClientRect();
+    tip.style.display = 'block';
+    const tw = 270, gap = 10;
+    let x = r.left + r.width + gap;
+    if (x + tw > window.innerWidth - 12) x = r.left - tw - gap;
+    tip.style.left = Math.max(8, x) + 'px';
+    tip.style.top = (r.top - 6) + 'px';
+    lastTarget = t;
+  });
+  document.addEventListener('mouseout', e => {
+    if (lastTarget && !e.relatedTarget?.closest?.('.tip,#tooltip')) {
+      tip.style.display = 'none'; lastTarget = null;
+    }
+  });
+})();
+
+/* ── TWEAKS WIRING ─────────────────────────────────────────────────────── */
+(() => {
+  // Accent swatches
+  document.querySelectorAll('#tw-accent .tw-swatch').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#tw-accent .tw-swatch').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      const c = btn.dataset.acc;
+      // Set runtime accent — recompute the tinted variants approximately
+      const root = document.documentElement;
+      root.style.setProperty('--acc', c);
+      root.style.setProperty('--acc-2', shade(c, -18));
+      root.style.setProperty('--acc-bg', hexA(c, 0.08));
+      root.style.setProperty('--acc-bg-2', hexA(c, 0.16));
+      localStorage.setItem('ps-acc', c);
+    });
+  });
+  // Density
+  document.querySelectorAll('#tw-density button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#tw-density button').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      document.documentElement.setAttribute('data-density', b.dataset.d);
+      localStorage.setItem('ps-density', b.dataset.d);
+    });
+  });
+  // Theme (mirror header control)
+  document.querySelectorAll('#tw-theme button').forEach(b => {
+    b.addEventListener('click', () => UI.setTheme(b.dataset.t));
+  });
+
+  function hexA(hex, a) {
+    const v = hex.replace('#','');
+    const r = parseInt(v.slice(0,2),16), g = parseInt(v.slice(2,4),16), bl = parseInt(v.slice(4,6),16);
+    return `rgba(${r},${g},${bl},${a})`;
+  }
+  function shade(hex, pct) {
+    const v = hex.replace('#','');
+    let r = parseInt(v.slice(0,2),16), g = parseInt(v.slice(2,4),16), b = parseInt(v.slice(4,6),16);
+    r = Math.max(0, Math.min(255, Math.round(r + r * pct/100)));
+    g = Math.max(0, Math.min(255, Math.round(g + g * pct/100)));
+    b = Math.max(0, Math.min(255, Math.round(b + b * pct/100)));
+    return '#' + [r,g,b].map(x => x.toString(16).padStart(2,'0')).join('');
+  }
+})();
+
+/* ── INIT ──────────────────────────────────────────────────────────────── */
+/* ── APPLE DROPDOWN ─────────────────────────────────────────────────── */
+const CHEV_RIGHT = '<svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1.5 1L5.5 6L1.5 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const CHEV_CHECK = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7L6 10L11 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function buildAppleSelect(sel) {
+  if (sel.dataset.appleized) return;
+  sel.dataset.appleized = '1';
+  sel.style.position = 'absolute';
+  sel.style.opacity = '0';
+  sel.style.pointerEvents = 'none';
+  sel.style.width = '1px';
+  sel.style.height = '1px';
+  sel.tabIndex = -1;
+
+  const trig = document.createElement('button');
+  trig.type = 'button';
+  trig.className = 'apple-select';
+  trig.innerHTML = `<span class="apple-select-text"></span><span class="apple-select-chev">${CHEV_RIGHT}</span>`;
+  sel.parentNode.insertBefore(trig, sel);
+
+  function refresh() {
+    const opt = sel.options[sel.selectedIndex];
+    trig.querySelector('.apple-select-text').textContent = opt ? opt.textContent.trim() : '';
+  }
+  refresh();
+  sel.addEventListener('change', refresh);
+  new MutationObserver(refresh).observe(sel, { attributes: true, attributeFilter: ['value'], childList: true, subtree: true });
+
+  trig.addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    openApplePopover(trig, sel);
+  });
+  trig.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      openApplePopover(trig, sel);
+    }
+  });
+}
+
+let _currentPop = null;
+function openApplePopover(trig, sel) {
+  closeApplePopover();
+  const pop = document.createElement('div');
+  pop.className = 'apple-popover';
+  _currentPop = pop;
+  trig.classList.add('open');
+
+  const items = [];
+  function addRow(opt) {
+    if (opt.tagName !== 'OPTION') return;
+    const row = document.createElement('div');
+    row.className = 'apple-popover-row';
+    const isSelected = (opt.value === sel.value);
+    row.innerHTML = `<span class="check">${isSelected ? CHEV_CHECK : ''}</span><span>${opt.textContent.trim()}</span>`;
+    row.dataset.value = opt.value;
+    row.addEventListener('mouseenter', () => {
+      pop.querySelectorAll('.apple-popover-row.focused').forEach(r => r.classList.remove('focused'));
+      row.classList.add('focused');
+    });
+    row.addEventListener('click', () => {
+      sel.value = opt.value;
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      trig.querySelector('.apple-select-text').textContent = opt.textContent.trim();
+      closeApplePopover();
+    });
+    pop.appendChild(row);
+    items.push(row);
+  }
+
+  Array.from(sel.children).forEach(child => {
+    if (child.tagName === 'OPTGROUP') {
+      if (items.length) {
+        const sepEl = document.createElement('div');
+        sepEl.className = 'apple-popover-sep';
+        pop.appendChild(sepEl);
+      }
+      const h = document.createElement('div');
+      h.className = 'apple-popover-group';
+      h.textContent = child.label;
+      pop.appendChild(h);
+      Array.from(child.children).forEach(addRow);
+    } else {
+      addRow(child);
+    }
+  });
+
+  document.body.appendChild(pop);
+
+  const r = trig.getBoundingClientRect();
+  const popW = Math.max(pop.offsetWidth, 220);
+  pop.style.width = popW + 'px';
+  let left = r.right - popW;
+  if (left < 14) left = 14;
+  if (left + popW > window.innerWidth - 14) left = window.innerWidth - popW - 14;
+  let top = r.bottom + 6;
+  if (top + pop.offsetHeight > window.innerHeight - 14) {
+    top = r.top - pop.offsetHeight - 6;
+    pop.style.transformOrigin = 'bottom right';
+  }
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+  const selectedRow = items.find(x => x.dataset.value === sel.value);
+  if (selectedRow) selectedRow.classList.add('focused');
+  requestAnimationFrame(() => pop.classList.add('open'));
+
+  function onDoc(ev) {
+    if (pop.contains(ev.target) || trig.contains(ev.target)) return;
+    closeApplePopover();
+  }
+  function onKey(ev) {
+    if (ev.key === 'Escape') { ev.preventDefault(); closeApplePopover(); return; }
+    if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+      ev.preventDefault();
+      const cur = items.findIndex(r => r.classList.contains('focused'));
+      const next = ev.key === 'ArrowDown'
+        ? Math.min(items.length - 1, cur + 1)
+        : Math.max(0, cur - 1);
+      items.forEach(r => r.classList.remove('focused'));
+      items[next]?.classList.add('focused');
+      items[next]?.scrollIntoView({ block: 'nearest' });
+    }
+    if (ev.key === 'Enter') {
+      ev.preventDefault();
+      const focused = items.find(r => r.classList.contains('focused'));
+      if (focused) focused.click();
+    }
+  }
+  pop._onDoc = onDoc;
+  pop._onKey = onKey;
+  setTimeout(() => {
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+  }, 0);
+}
+function closeApplePopover() {
+  if (!_currentPop) return;
+  const pop = _currentPop;
+  _currentPop = null;
+  pop.classList.remove('open');
+  document.removeEventListener('mousedown', pop._onDoc);
+  document.removeEventListener('keydown', pop._onKey);
+  document.querySelectorAll('.apple-select.open').forEach(t => t.classList.remove('open'));
+  setTimeout(() => pop.remove(), 220);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Build Apple dropdowns for every .row-select
+  document.querySelectorAll('select.row-select').forEach(buildAppleSelect);
+  window.addEventListener('resize', closeApplePopover);
+  window.addEventListener('scroll', e => {
+    if (_currentPop && !_currentPop.contains(e.target)) closeApplePopover();
+  }, true);
+
+  // Restore prefs
+  const t = localStorage.getItem('ps-theme') || 'light';
+  UI.setTheme(t);
+  const lang = localStorage.getItem('ps-lang') || 'da';
+  UI.setLang(lang);
+  const d = localStorage.getItem('ps-density');
+  if (d) {
+    document.documentElement.setAttribute('data-density', d);
+    document.querySelectorAll('#tw-density button').forEach(x => {
+      x.classList.toggle('on', x.dataset.d === d);
+    });
+  }
+  const acc = localStorage.getItem('ps-acc');
+  if (acc) {
+    const btn = document.querySelector(`#tw-accent .tw-swatch[data-acc="${acc}"]`);
+    if (btn) btn.click();
+  }
+
+  // Click outside std popover closes it
+  document.addEventListener('mousedown', e => {
+    const pop = document.getElementById('std-popover');
+    const btn = document.getElementById('std-btn');
+    if (!pop.classList.contains('open')) return;
+    if (!pop.contains(e.target) && !btn.contains(e.target)) pop.classList.remove('open');
+  });
+  // ESC closes drawers / modals / popovers
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      UI.closeAI();
+      UI.closeReport();
+      UI.closeNewProject();
+      document.getElementById('std-popover').classList.remove('open');
+      document.getElementById('tweaks-panel').classList.remove('open');
+    }
+  });
+
+  // Project list — clicking switches active state
+  document.querySelectorAll('.proj-item').forEach(el => {
+    el.addEventListener('click', e => {
+      if (e.target.closest('.proj-item-del')) { e.stopPropagation(); el.remove(); return; }
+      document.querySelectorAll('.proj-item').forEach(x => x.classList.remove('active'));
+      el.classList.add('active');
+    });
+  });
+
+  /* ── RESIZABLE COLUMNS ─────────────────────────────────────── */
+  function makeResizer(handle, cssVar, min, max, opts = {}) {
+    if (!handle) return;
+    const root = document.documentElement;
+    // restore
+    const saved = localStorage.getItem('ps-' + cssVar);
+    if (saved) root.style.setProperty('--' + cssVar, saved);
+
+    handle.addEventListener('mousedown', e => {
+      e.preventDefault();
+      handle.classList.add('dragging');
+      document.body.classList.add('is-resizing');
+      const startX = e.clientX;
+      const startW = parseFloat(getComputedStyle(root).getPropertyValue('--' + cssVar));
+      function move(ev) {
+        const dx = (ev.clientX - startX) * (opts.invert ? -1 : 1);
+        const w = Math.max(min, Math.min(max, startW + dx));
+        root.style.setProperty('--' + cssVar, w + 'px');
+      }
+      function up() {
+        handle.classList.remove('dragging');
+        document.body.classList.remove('is-resizing');
+        document.removeEventListener('mousemove', move);
+        document.removeEventListener('mouseup', up);
+        localStorage.setItem('ps-' + cssVar,
+          getComputedStyle(root).getPropertyValue('--' + cssVar).trim());
+      }
+      // double-click to reset
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', up);
+    });
+    handle.addEventListener('dblclick', () => {
+      root.style.removeProperty('--' + cssVar);
+      localStorage.removeItem('ps-' + cssVar);
+    });
+  }
+  makeResizer(document.getElementById('sidebar-resizer'), 'sbw', 180, 360);
+  makeResizer(document.getElementById('input-resizer'),   'inpw', 320, 680);
+
+  /* ── AI panel resize — smooth spring via rAF lerp ─────────────── */
+  (() => {
+    const handle = document.getElementById('ai-resize-handle');
+    const panel  = document.getElementById('ai-panel');
+    if (!handle || !panel) return;
+    const LERP = 0.18; // spring stiffness — lower = lazier follow
+    const MIN = 340, MAX = 760;
+
+    const saved = localStorage.getItem('ps-aiw');
+    if (saved) panel.style.width = saved;
+
+    handle.addEventListener('mousedown', e => {
+      e.preventDefault();
+      handle.classList.add('dragging');
+      document.body.classList.add('is-resizing');
+
+      const startX  = e.clientX;
+      const startW  = panel.offsetWidth;
+      let targetW   = startW;
+      let currentW  = startW;
+      let rafId     = null;
+
+      function tick() {
+        const diff = targetW - currentW;
+        if (Math.abs(diff) < 0.4) {
+          currentW = targetW;
+          panel.style.width = currentW + 'px';
+          rafId = null;
+          return;
+        }
+        currentW += diff * LERP;
+        panel.style.width = Math.round(currentW) + 'px';
+        rafId = requestAnimationFrame(tick);
+      }
+
+      function move(ev) {
+        const dx = (startX - ev.clientX); // invert: drag left = wider
+        targetW = Math.max(MIN, Math.min(MAX, startW + dx));
+        if (!rafId) rafId = requestAnimationFrame(tick);
+      }
+
+      function up() {
+        handle.classList.remove('dragging');
+        document.body.classList.remove('is-resizing');
+        document.removeEventListener('mousemove', move);
+        document.removeEventListener('mouseup',   up);
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+        panel.style.width = targetW + 'px';
+        localStorage.setItem('ps-aiw', targetW + 'px');
+      }
+
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup',   up);
+    });
+
+    handle.addEventListener('dblclick', () => {
+      panel.style.removeProperty('width');
+      localStorage.removeItem('ps-aiw');
+    });
+  })();
+});
+
+</script>
+
+<!-- ── ENGINE FILES ── -->
+<script src="engine.js"></script>
+<script src="fittings.js"></script>
+<script src="report.js"></script>
+
+<!-- Hent API-nøgle fra serveren (.env) og indlæs derefter ai.js -->
+<script>
+(async () => {
+  try {
+    const r = await fetch('/api/config');
+    if (r.ok) {
+      const d = await r.json();
+      if (d.apiKey) window.PIPESPEC_CONFIG = { apiKey: d.apiKey };
+    }
+  } catch (_) {
+    console.info('Kunne ikke hente /api/config — brug API-nøgle feltet i AI panelet');
+  }
+  // Indlæs ai.js dynamisk så PIPESPEC_CONFIG altid er klar
+  const s = document.createElement('script');
+  s.src = 'ai.js';
+  document.body.appendChild(s);
+})();
+</script>
+
+</body>
+</html>
+

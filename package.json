@@ -1,0 +1,19 @@
+{
+  "name": "pipespec",
+  "version": "1.0.0",
+  "description": "EdgeWay PipeSpec — Pipeline Dimensioning Calculator",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "EdgeWay",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "docx": "^9.6.1",
+    "dotenv": "^16.4.7",
+    "express": "^5.2.1"
+  }
+}
