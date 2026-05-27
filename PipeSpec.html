@@ -117,7 +117,7 @@
 
   <div class="proj-footer">
     <div class="proj-autosave" id="proj-autosave-txt" data-i18n="sidebar.autosave">Auto-gem aktiv</div>
-    <div style="font-size:11px;color:var(--text-4);margin-top:6px;letter-spacing:0.02em;">v1.0.12</div>
+    <div id="app-version" style="font-size:11px;color:var(--text-4);margin-top:6px;letter-spacing:0.02em;">v1.0.12</div>
   </div>
 </nav>
 
@@ -1692,9 +1692,23 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="fittings.js"></script>
 <script src="report.js"></script>
 
-<!-- Hent API-nøgle fra serveren (.env) og indlæs derefter ai.js -->
+<!-- Hent API-nøgle + Git-version fra serveren -->
 <script>
 (async () => {
+  // Hent og vis Git-version
+  try {
+    const rv = await fetch('/api/version');
+    if (rv.ok) {
+      const v = await rv.json();
+      const el = document.getElementById('app-version');
+      if (el && v.hash !== 'unknown') {
+        el.textContent = v.hash + (v.dirty ? ' *' : '') + (v.date ? '  ·  ' + v.date : '');
+        el.title = 'Git commit: ' + v.hash + (v.dirty ? '\nUgemte ændringer' : '');
+      }
+    }
+  } catch (_) {}
+
+  // Hent API-nøgle
   try {
     const r = await fetch('/api/config');
     if (r.ok) {

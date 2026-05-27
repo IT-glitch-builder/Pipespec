@@ -37,6 +37,19 @@ app.get('/api/config', (_req, res) => {
   res.json({ apiKey: key });
 });
 
+// ── VERSIONS endpoint — Git commit hash + dato ────────────────────────────────
+app.get('/api/version', (_req, res) => {
+  const { execSync } = require('child_process');
+  try {
+    const hash = execSync('git rev-parse --short HEAD', { cwd: __dirname }).toString().trim();
+    const date = execSync('git log -1 --format=%cd --date=format:%Y-%m-%d', { cwd: __dirname }).toString().trim();
+    const dirty = execSync('git status --porcelain', { cwd: __dirname }).toString().trim();
+    res.json({ hash, date, dirty: dirty.length > 0 });
+  } catch (_) {
+    res.json({ hash: 'unknown', date: '', dirty: false });
+  }
+});
+
 app.get('/', (_req, res) => {
   res.redirect('/PipeSpec.html');
 });
