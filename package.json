@@ -1,10 +1,12 @@
 {
   "name": "pipespec",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "EdgeWay PipeSpec — Pipeline Dimensioning Calculator",
-  "main": "server.js",
+  "main": "main.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "concurrently \"node server.js\" \"electron .\"",
+    "build": "electron-builder --win"
   },
   "keywords": [],
   "author": "EdgeWay",
@@ -14,6 +16,45 @@
     "cors": "^2.8.6",
     "docx": "^9.6.1",
     "dotenv": "^16.4.7",
+    "electron-updater": "^6.8.3",
     "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "electron": "^36.0.0",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "dk.edgeway.pipespec",
+    "productName": "EdgeWay PipeSpec",
+    "copyright": "Copyright © 2026 EdgeWay",
+    "publish": {
+      "provider": "github",
+      "owner": "IT-glitch-builder",
+      "repo": "Pipespec"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "assets/icon.png",
+      "installerHeaderIcon": "assets/icon.png",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "EdgeWay PipeSpec"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/.cache",
+      "!**/*.map",
+      "!Standarder/**",
+      "!.env",
+      "!.git/**"
+    ],
+    "extraResources": [],
+    "asar": true
   }
 }
