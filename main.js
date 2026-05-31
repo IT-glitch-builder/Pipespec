@@ -119,7 +119,7 @@ autoUpdater.on('update-downloaded', () => {
 autoUpdater.on('error', err => console.error('Auto-updater:', err.message));
 
 ipcMain.on('restart-and-update', () => {
-  autoUpdater.quitAndInstall(false, true);
+  autoUpdater.quitAndInstall(true, true);
 });
 
 // ── App livscyklus ────────────────────────────────────────────────────────────
