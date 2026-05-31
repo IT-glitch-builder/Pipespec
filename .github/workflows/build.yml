@@ -16,11 +16,10 @@ jobs:
       - name: Sæt Node.js op
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '22'
 
       - name: Installér afhængigheder
-        run: npm ci
+        run: npm install
 
       - name: Byg Windows .exe
         env:
