@@ -26,7 +26,7 @@ jobs:
       - name: Byg Windows .exe
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build
+        run: npx electron-builder --win --config.directories.output=dist
 
       - name: Upload til GitHub Release
         uses: softprops/action-gh-release@v2
