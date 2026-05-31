@@ -46,8 +46,9 @@ app.get('/api/version', (_req, res) => {
 });
 
 // ── PROJEKT PERSISTENS ────────────────────────────────────────────────────────
-// Gem i %APPDATA%/EdgeWay PipeSpec/ så data overlever app-opdateringer
-const _userData = path.join(process.env.APPDATA || path.join(require('os').homedir(), 'AppData', 'Roaming'), 'EdgeWay PipeSpec');
+// APP_USERDATA sættes af main.js via app.getPath('userData') — korrekt i både dev og prod
+const _userData = process.env.APP_USERDATA
+  || path.join(process.env.APPDATA || require('os').homedir(), 'EdgeWay PipeSpec');
 if (!fs.existsSync(_userData)) fs.mkdirSync(_userData, { recursive: true });
 const PROJECTS_FILE = path.join(_userData, 'projects.json');
 

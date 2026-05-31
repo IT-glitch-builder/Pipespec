@@ -11,8 +11,9 @@ const IS_DEV = !app.isPackaged;
 
 const License = require('./license.js');
 
-// Sæt version så server.js kan læse den korrekt uanset dev/prod
-process.env.APP_VERSION = app.getVersion();
+// Sæt version og userData-sti så server.js kan bruge dem korrekt uanset dev/prod
+process.env.APP_VERSION  = app.getVersion();
+process.env.APP_USERDATA = app.getPath('userData');
 
 // ── Én instans ad gangen ──────────────────────────────────────────────────────
 const gotLock = app.requestSingleInstanceLock();
