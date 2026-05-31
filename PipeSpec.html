@@ -106,6 +106,10 @@
   </div>
 
   <div class="proj-footer">
+    <div id="update-banner" style="display:none;background:var(--acc-bg);border:1px solid var(--acc-bg-2);border-radius:var(--r-sm);padding:8px 10px;margin-bottom:8px;display:none">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--acc-2);margin-bottom:6px;letter-spacing:.3px">↑ NY VERSION KLAR</div>
+      <button id="update-restart-btn" style="width:100%;background:var(--acc);color:#fff;border:none;border-radius:var(--r-sm);font-family:var(--mono);font-size:11px;font-weight:600;padding:6px 0;cursor:pointer;letter-spacing:.3px">Genstart og opdater</button>
+    </div>
     <div class="proj-autosave" id="proj-autosave-txt" data-i18n="sidebar.autosave">Auto-gem aktiv</div>
     <div id="app-version" style="font-size:11px;color:var(--text-4);margin-top:6px;letter-spacing:0.02em;"></div>
   </div>
@@ -1700,6 +1704,16 @@ document.addEventListener('DOMContentLoaded', () => {
       el.title = 'Version ' + version;
     }
   } catch (_) {}
+
+  // Auto-updater — diskret banner i sidebaren
+  if (window.electronAPI?.onUpdateDownloaded) {
+    window.electronAPI.onUpdateDownloaded(() => {
+      const banner = document.getElementById('update-banner');
+      if (banner) banner.style.display = '';
+      const btn = document.getElementById('update-restart-btn');
+      if (btn) btn.onclick = () => window.electronAPI.restartAndUpdate();
+    });
+  }
 
   // Hent API-nøgle
   try {

@@ -105,24 +105,18 @@ ipcMain.on('license-activated', () => {
 
 // ── Auto-updater ──────────────────────────────────────────────────────────────
 autoUpdater.on('update-available', () => {
-  dialog.showMessageBox({
-    type: 'info', title: 'Opdatering tilgængelig',
-    message: 'En ny version er tilgængelig og hentes i baggrunden.',
-    buttons: ['OK']
-  });
+  if (mainWindow) mainWindow.webContents.send('update-available');
 });
 
 autoUpdater.on('update-downloaded', () => {
-  dialog.showMessageBox({
-    type: 'info', title: 'Opdatering klar',
-    message: 'Opdateringen er klar. Genstart for at installere.',
-    buttons: ['Genstart nu', 'Senere']
-  }).then(({ response }) => {
-    if (response === 0) autoUpdater.quitAndInstall();
-  });
+  if (mainWindow) mainWindow.webContents.send('update-downloaded');
 });
 
 autoUpdater.on('error', err => console.error('Auto-updater:', err.message));
+
+ipcMain.on('restart-and-update', () => {
+  autoUpdater.quitAndInstall(false, true);
+});
 
 // ── App livscyklus ────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
