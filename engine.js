@@ -966,24 +966,26 @@ const PM = {
       const res = await fetch('/api/projects');
       if (res.ok) {
         const data = await res.json();
-        if (data && data.projects) {
+        if (data && data.projects && Object.keys(data.projects).length > 0) {
           this.projects = data.projects;
           this.activeId = data.activeId || null;
+          this._serverHasData = true;
           return;
         }
-        // Første gang: migrer fra localStorage hvis der er data
-        const legacy = localStorage.getItem(_PROJ_KEY);
-        if (legacy) {
-          this.projects = JSON.parse(legacy);
-          this.activeId = localStorage.getItem(_ACTIVE_KEY) || null;
-          await this._saveAsync();
-          return;
-        }
+        // Server responded OK but no projects yet — mark as confirmed empty
+        this._serverHasData = true;
         this.projects = {}; this.activeId = null;
       } else {
+        // Server error — use localStorage fallback only
+        this._serverHasData = false;
         this._load();
       }
-    } catch(e) { console.warn('PM._loadAsync:', e); this._load(); }
+    } catch(e) {
+      // Network/fetch error — use localStorage fallback only
+      console.warn('PM._loadAsync:', e);
+      this._serverHasData = false;
+      this._load();
+    }
   },
 
   _save() {
@@ -1182,21 +1184,10 @@ const PM = {
 
     await this._loadAsync();
 
-    if (!Object.keys(this.projects).length) {
-      const demos = [
-        'Dampdistribution Hal 2',
-        'Process Linie 14B — kondensat',
-        'NH₃ kølekreds — Frostlager',
-        'Brine return DN150',
-        'Heat-rec. udskiftning 2026-Q1',
-        'Audit-revision PIP-2025-204',
-      ];
-      let firstId = null;
-      demos.forEach((name, i) => {
-        const id = this.createProject(name, false);
-        if (i === 0) firstId = id;
-      });
-      this.activeId = firstId;
+    if (!Object.keys(this.projects).length && this._serverHasData) {
+      // Server confirmed empty (first ever launch) — create one blank project
+      const id = this.createProject('Nyt projekt', false);
+      this.activeId = id;
       await this._saveAsync();
     }
     if (!this.activeId || !this.projects[this.activeId]) {
