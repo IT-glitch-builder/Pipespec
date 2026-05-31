@@ -11,6 +11,9 @@ const IS_DEV = !app.isPackaged;
 
 const License = require('./license.js');
 
+// Sæt version så server.js kan læse den korrekt uanset dev/prod
+process.env.APP_VERSION = app.getVersion();
+
 // ── Én instans ad gangen ──────────────────────────────────────────────────────
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) { app.quit(); }
@@ -20,7 +23,6 @@ let serverStarted = false;
 function startServer() {
   if (serverStarted || IS_DEV) return;
   serverStarted = true;
-  process.env.APP_VERSION = app.getVersion();
   try {
     require('./server.js');
   } catch (err) {
