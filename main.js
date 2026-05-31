@@ -20,6 +20,7 @@ let serverStarted = false;
 function startServer() {
   if (serverStarted || IS_DEV) return;
   serverStarted = true;
+  process.env.APP_VERSION = app.getVersion();
   try {
     require('./server.js');
   } catch (err) {

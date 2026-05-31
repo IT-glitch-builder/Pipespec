@@ -37,17 +37,12 @@ app.get('/api/config', (_req, res) => {
   res.json({ apiKey: key });
 });
 
-// ── VERSIONS endpoint — semver fra package.json + Git commit hash ─────────────
+// ── VERSIONS endpoint ─────────────────────────────────────────────────────────
 app.get('/api/version', (_req, res) => {
-  const { execSync } = require('child_process');
-  const pkg = require('./package.json');
-  try {
-    const hash  = execSync('git rev-parse --short HEAD', { cwd: __dirname }).toString().trim();
-    const dirty = execSync('git status --porcelain',     { cwd: __dirname }).toString().trim();
-    res.json({ version: pkg.version, hash, dirty: dirty.length > 0 });
-  } catch (_) {
-    res.json({ version: pkg.version, hash: '', dirty: false });
-  }
+  // APP_VERSION sættes af main.js (electron) — fungerer korrekt i pakket app
+  const version = process.env.APP_VERSION || require('./package.json').version;
+  const hash    = process.env.APP_COMMIT  || '';
+  res.json({ version, hash, dirty: false });
 });
 
 // ── PROJEKT PERSISTENS ────────────────────────────────────────────────────────
