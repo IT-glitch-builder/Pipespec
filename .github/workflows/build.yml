@@ -20,6 +20,19 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Verificér at tag matcher version i package.json
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          PKG_VERSION="v$(node -p "require('./package.json').version")"
+          echo "Tag: $TAG"
+          echo "package.json version: $PKG_VERSION"
+          if [ "$TAG" != "$PKG_VERSION" ]; then
+            echo "FEJL: Tag ($TAG) matcher ikke version i package.json ($PKG_VERSION)"
+            echo "Bump versionen i package.json FØR du tagger!"
+            exit 1
+          fi
+
       - name: Installér afhængigheder
         run: npm install
 
@@ -27,6 +40,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx electron-builder --win --config.directories.output=dist
+
+      - name: Verificér at filer blev bygget
+        shell: bash
+        run: |
+          ls dist/*.exe || (echo "FEJL: Ingen .exe fil fundet i dist/" && exit 1)
+          ls dist/*.yml || (echo "FEJL: Ingen .yml fil fundet i dist/" && exit 1)
+          echo "Byggede filer:"
+          ls -lh dist/
 
       - name: Upload til GitHub Release
         uses: softprops/action-gh-release@v2
