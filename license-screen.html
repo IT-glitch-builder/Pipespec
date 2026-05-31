@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EdgeWay PipeSpec — Aktivering</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0f1923;
+    color: #e8eaed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    user-select: none;
+    -webkit-app-region: drag;
+  }
+
+  .card {
+    background: #1a2533;
+    border: 1px solid #2a3a4a;
+    border-radius: 16px;
+    padding: 48px 40px 40px;
+    width: 440px;
+    -webkit-app-region: no-drag;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: #2563eb;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .logo-icon svg { width: 20px; height: 20px; }
+
+  .logo-text { font-size: 15px; font-weight: 600; color: #e8eaed; }
+  .logo-sub  { font-size: 12px; color: #6b7f99; margin-top: 1px; }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #e8eaed;
+    margin-bottom: 8px;
+  }
+
+  p.sub {
+    font-size: 13px;
+    color: #6b7f99;
+    line-height: 1.5;
+    margin-bottom: 28px;
+  }
+
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7f99;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+
+  input {
+    width: 100%;
+    background: #0f1923;
+    border: 1px solid #2a3a4a;
+    border-radius: 8px;
+    color: #e8eaed;
+    font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 15px;
+    letter-spacing: 0.05em;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color .15s;
+    margin-bottom: 8px;
+  }
+
+  input:focus { border-color: #2563eb; }
+  input.error { border-color: #ef4444; }
+  input.ok    { border-color: #22c55e; }
+
+  .error-msg {
+    font-size: 12px;
+    color: #ef4444;
+    min-height: 18px;
+    margin-bottom: 20px;
+  }
+
+  button {
+    width: 100%;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 13px;
+    cursor: pointer;
+    transition: background .15s, opacity .15s;
+  }
+
+  button:hover   { background: #1d4ed8; }
+  button:active  { opacity: .85; }
+  button:disabled { opacity: .4; cursor: default; }
+
+  .footer {
+    margin-top: 24px;
+    font-size: 11px;
+    color: #3d5068;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .footer a {
+    color: #4b7bcc;
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <circle cx="12" cy="12" r="4"/>
+        <line x1="2" y1="12" x2="8" y2="12"/>
+        <line x1="16" y1="12" x2="22" y2="12"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">EdgeWay PipeSpec</div>
+      <div class="logo-sub">Pipeline dimensionering · EN 13480-3:2024</div>
+    </div>
+  </div>
+
+  <h1>Aktivér din licens</h1>
+  <p class="sub">Indtast din licensnøgle for at aktivere programmet. Nøglen starter med <strong>EDGW-</strong> og aktiveres via internet første gang.</p>
+
+  <label for="keyInput">Licensnøgle</label>
+  <input
+    id="keyInput"
+    type="text"
+    placeholder="EDGW-XXXX-XXXX-XXXX"
+    maxlength="19"
+    autocomplete="off"
+    spellcheck="false"
+  >
+  <div class="error-msg" id="errorMsg"></div>
+
+  <button id="activateBtn" disabled>Aktivér</button>
+
+  <div class="footer">
+    Ingen nøgle? Kontakt <a href="mailto:rasmus@edgeway.dk">rasmus@edgeway.dk</a><br>
+    Din nøgle er bundet til denne computer og kan ikke overføres.
+  </div>
+</div>
+
+<script>
+  const input  = document.getElementById('keyInput');
+  const btn    = document.getElementById('activateBtn');
+  const errMsg = document.getElementById('errorMsg');
+
+  // Formater input automatisk som EDGW-XXXX-XXXX-XXXX
+  input.addEventListener('input', () => {
+    let val = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (val.startsWith('EDGW')) val = val.slice(4);
+    val = val.replace(/(.{4})/g, '$1-').replace(/-$/, '');
+    input.value = val ? 'EDGW-' + val : '';
+    input.classList.remove('error', 'ok');
+    errMsg.textContent = '';
+    // Aktiver knap når nøglen har fuld længde: EDGW-XXXX-XXXX-XXXX = 16 tegn uden bindestreger
+    btn.disabled = input.value.replace(/-/g, '').length < 16;
+  });
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !btn.disabled) activate();
+  });
+
+  btn.addEventListener('click', activate);
+
+  function activate() {
+    const key = input.value.trim();
+    btn.disabled = true;
+    btn.textContent = 'Validerer...';
+    errMsg.textContent = '';
+
+    // Send nøglen til main-processen via preload
+    window.electronAPI.activateLicense(key).then(result => {
+      if (result.ok) {
+        input.classList.add('ok');
+        btn.textContent = 'Aktiveret ✓';
+        setTimeout(() => window.electronAPI.licenseActivated(), 800);
+      } else {
+        input.classList.add('error');
+        errMsg.textContent = result.error || 'Ugyldig nøgle';
+        btn.disabled = false;
+        btn.textContent = 'Aktivér';
+      }
+    });
+  }
+</script>
+</body>
+</html>

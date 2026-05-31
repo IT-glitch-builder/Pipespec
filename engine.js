@@ -1,78 +1,6 @@
 /* engine.js — PipeSpec calculation engine
-   Lifted from Pipeline motor/Pipeline_Calculator_EN13480_Fixed.html
-   Functions: PIPES (ln 1503), MATS (ln 1532), interpStrength (ln 1564),
-   computeF_from_mat (ln 1586), pedClassify (ln 1616), waterSatTemp (ln 1676),
-   updateWaterPhase (ln 1682), toggleMethod (ln 1748), toggleCatOverride (ln 1754),
-   toggleC1 (ln 1759), toggleAust522 (ln 1764), toggleSteelRows (ln 1781),
-   recomputeF (ln 1794), applyPreset (ln 1808), switchTab (ln 1822), activeTab (ln 1821),
-   calcE (ln 1831), calcEord (ln 1838), calcEa (ln 1841), calcPmax (ln 1844),
-   calculate (ln 1847), buildDerivationCard (ln 1957), renderResults (ln 2644),
-   addToReportList (ln 2012), addFlangeToReport (ln 2022), removeFromReportList (ln 2031),
-   clearReportList (ln 2032), renderReportList (ln 2033), populateFittingsFromPipe (ln 2435),
-   switchMainTab (ln 2421), initBatchDNDropdowns (ln 2720), toggleBatchUI (ln 2734),
-   runBatchCalculate (ln 2979), PM module (ln 3049), kpiBox (ln 2475)
+   PIPES og MATS er flyttet til materials.js (skal loades før denne fil).
 */
-
-// ── PIPE DATA ─────────────────────────────────────────────────────────────────
-const PIPES=[
-  {nps:"1/8",dn:6,od:10.3,sch:{"5s":1.24,"10s":1.73,"STD/40":1.73,"80s/XS":2.41}},
-  {nps:"1/4",dn:8,od:13.7,sch:{"5s":1.65,"10s":2.24,"STD/40":2.24,"80s/XS":3.02}},
-  {nps:"3/8",dn:10,od:17.1,sch:{"5s":1.65,"10s":2.31,"STD/40":2.31,"80s/XS":3.20}},
-  {nps:"1/2",dn:15,od:21.3,sch:{"5s":1.65,"10s":2.11,"STD/40":2.77,"80s/XS":3.73,"160":4.78,"XXS":7.47}},
-  {nps:"3/4",dn:20,od:26.7,sch:{"5s":1.65,"10s":2.11,"STD/40":2.87,"80s/XS":3.91,"160":5.56,"XXS":7.82}},
-  {nps:"1",dn:25,od:33.4,sch:{"5s":1.65,"10s":2.77,"STD/40":3.38,"80s/XS":4.55,"160":6.35,"XXS":9.09}},
-  {nps:"1¼",dn:32,od:42.2,sch:{"5s":1.65,"10s":2.77,"STD/40":3.56,"80s/XS":4.85,"160":6.35,"XXS":9.70}},
-  {nps:"1½",dn:40,od:48.3,sch:{"5s":1.65,"10s":2.77,"STD/40":3.68,"80s/XS":5.08,"160":7.14,"XXS":10.15}},
-  {nps:"2",dn:50,od:60.3,sch:{"5s":1.65,"10s":2.77,"STD/40":3.91,"80s/XS":5.54,"160":8.74,"XXS":11.07}},
-  {nps:"2½",dn:65,od:73.0,sch:{"5s":2.11,"10s":3.05,"STD/40":5.16,"80s/XS":7.01,"160":9.53,"XXS":14.02}},
-  {nps:"3",dn:80,od:88.9,sch:{"5s":2.11,"10s":3.05,"STD/40":5.49,"80s/XS":7.62,"160":11.13,"XXS":15.24}},
-  {nps:"3½",dn:90,od:101.6,sch:{"5s":2.11,"10s":3.05,"STD/40":5.74,"80s/XS":8.08}},
-  {nps:"4",dn:100,od:114.3,sch:{"5s":2.11,"10s":3.05,"STD/40":6.02,"80s/XS":8.56,"120":11.13,"160":13.49,"XXS":17.12}},
-  {nps:"5",dn:125,od:141.3,sch:{"5s":2.77,"10s":3.40,"STD/40":6.55,"80s/XS":9.53,"120":12.70,"160":15.88,"XXS":19.05}},
-  {nps:"6",dn:150,od:168.3,sch:{"5s":2.77,"10s":3.40,"STD/40":7.11,"80s/XS":10.97,"120":14.27,"160":18.26,"XXS":21.95}},
-  {nps:"8",dn:200,od:219.1,sch:{"5s":2.77,"10s":3.76,"20":6.35,"STD/40":8.18,"60":10.31,"80s/XS":12.70,"120":15.09,"160":20.62,"XXS":23.01}},
-  {nps:"10",dn:250,od:273.1,sch:{"5s":3.40,"10s":4.19,"STD/40":9.27,"80s/XS":12.70,"120":18.26,"160":25.40,"XXS":28.58}},
-  {nps:"12",dn:300,od:323.9,sch:{"5s":3.96,"10s":4.57,"STD/40":9.53,"80s/XS":12.70,"120":17.48,"160":25.40,"XXS":33.32}},
-  {nps:"14",dn:350,od:355.6,sch:{"5s":3.96,"10s":4.78,"30/STD":9.53,"60":11.13,"80/XS":15.09,"120":23.83,"160":31.75,"XXS":35.71}},
-  {nps:"16",dn:400,od:406.4,sch:{"5s":4.19,"10s":4.78,"20/STD":7.92,"40/XS":12.70,"60":16.66,"80":17.48,"120":26.19,"160":36.53,"XXS":40.49}},
-  {nps:"18",dn:450,od:457.2,sch:{"5s":4.19,"10s":4.78,"STD":7.92,"40/XS":14.27,"60":19.05,"80":23.83,"120":34.93,"160":45.24}},
-  {nps:"20",dn:500,od:508.0,sch:{"5s":4.78,"10s":5.54,"STD":9.53,"40/XS":15.09,"60":20.62,"80":26.19,"120":38.10,"160":50.01}},
-  {nps:"24",dn:600,od:610.0,sch:{"5s":5.54,"10s/STD":6.35,"30/XS":14.27,"40":17.48,"60":24.61,"80":30.96,"120":46.02,"160":59.54}},
-  {nps:"30",dn:750,od:762.0,sch:{"5s":6.35,"10s/STD":7.92,"20/XS":12.70}},
-  {nps:"36",dn:900,od:914.4,sch:{"5s":7.92,"10s/STD":9.53,"XS":12.70}},
-];
-
-// ── MATERIAL DATABASE ─────────────────────────────────────────────────────────
-const MATS={
-  P235GH:{name:'P235GH (1.0345)',steelNo:'1.0345',type:'ferritic',Rm_rt:360,Re_rt:235,
-    tempData:[[20,235,null,360],[100,205,null,345],[150,192,null,330],[200,181,null,315],[250,170,null,305],[300,159,null,295],[350,152,null,275],[400,142,null,245],[450,127,null,220],[475,120,null,205]]},
-  P265GH:{name:'P265GH (1.0425)',steelNo:'1.0425',type:'ferritic',Rm_rt:410,Re_rt:265,
-    tempData:[[20,265,null,410],[100,237,null,390],[150,220,null,375],[200,207,null,360],[250,196,null,345],[300,186,null,335],[350,175,null,315],[400,163,null,280],[450,148,null,250],[475,140,null,235]]},
-  P355GH:{name:'P355GH (1.0473)',steelNo:'1.0473',type:'ferritic',Rm_rt:510,Re_rt:355,
-    tempData:[[20,355,null,510],[100,310,null,490],[150,294,null,470],[200,285,null,455],[250,274,null,440],[300,262,null,420],[350,246,null,395],[400,228,null,365],[450,204,null,325],[475,190,null,300]]},
-  P355NH:{name:'P355NH (1.0565)',steelNo:'1.0565',type:'ferritic',Rm_rt:510,Re_rt:355,
-    tempData:[[20,355,null,510],[100,310,null,490],[150,294,null,470],[200,285,null,455],[250,274,null,440],[300,262,null,420],[350,246,null,395],[400,228,null,365],[450,204,null,325]]},
-  '1.4301':{name:'X5CrNi18-10 / 1.4301 (AISI 304)',steelNo:'1.4301',type:'austenitic',Rm_rt:515,Re_rt:210,Rp10_rt:250,
-    tempData:[[50,190,228,494],[100,157,191,450],[150,142,172,420],[200,127,157,400],[250,118,145,390],[300,110,135,380],[350,104,129,380],[400,98,125,380],[450,95,122,370],[500,92,120,360],[550,90,120,330]]},
-  '1.4306':{name:'X2CrNi19-11 / 1.4306 (AISI 304L)',steelNo:'1.4306',type:'austenitic',Rm_rt:480,Re_rt:185,Rp10_rt:240,
-    tempData:[[50,180,218,466],[100,147,181,410],[150,132,162,380],[200,118,147,360],[250,108,137,350],[300,100,127,340],[350,94,121,340],[400,89,116,null],[450,85,112,null],[500,81,109,null],[550,80,108,null]]},
-  '1.4307':{name:'X2CrNi18-9 / 1.4307 (AISI 304L alt)',steelNo:'1.4307',type:'austenitic',Rm_rt:480,Re_rt:185,Rp10_rt:240,
-    tempData:[[50,180,218,466],[100,147,181,410],[150,132,162,380],[200,118,147,360],[250,108,137,350],[300,100,127,340],[350,94,121,340],[400,89,116,null],[450,85,112,null],[500,81,109,null],[550,80,108,null]]},
-  '1.4401':{name:'X5CrNiMo17-12-2 / 1.4401 (AISI 316)',steelNo:'1.4401',type:'austenitic',Rm_rt:515,Re_rt:220,Rp10_rt:260,
-    tempData:[[50,204,242,486],[100,177,211,430],[150,162,191,410],[200,147,177,390],[250,137,167,385],[300,127,156,380],[350,120,150,380],[400,115,144,null],[450,112,141,null],[500,110,139,null],[550,108,137,null]]},
-  '1.4404':{name:'X2CrNiMo17-12-2 / 1.4404 (AISI 316L)',steelNo:'1.4404',type:'austenitic',Rm_rt:485,Re_rt:185,Rp10_rt:220,
-    tempData:[[50,200,237,486],[100,166,199,430],[150,152,181,410],[200,137,167,390],[250,127,157,385],[300,118,145,380],[350,113,139,380],[400,108,135,380],[450,103,130,null],[500,100,128,360],[550,98,127,null]]},
-  '1.4406':{name:'X2CrNiMoN17-11-2 / 1.4406',steelNo:'1.4406',type:'austenitic',Rm_rt:580,Re_rt:280,Rp10_rt:320,
-    tempData:[[50,254,292,557],[100,211,246,520],[150,185,218,490],[200,167,198,460],[250,155,183,450],[300,145,175,440],[350,140,169,435],[400,135,164,null],[450,131,160,null],[500,128,158,null],[550,127,157,null]]},
-  '1.4429':{name:'X2CrNiMoN17-13-3 / 1.4429',steelNo:'1.4429',type:'austenitic',Rm_rt:580,Re_rt:280,Rp10_rt:320,
-    tempData:[[50,254,292,557],[100,211,246,520],[150,185,218,490],[200,167,198,460],[250,155,183,450],[300,145,175,440],[350,140,169,435],[400,135,164,435],[450,131,160,null],[500,129,158,430],[550,127,157,null]]},
-  '1.4571':{name:'X6CrNiMoTi17-12-2 / 1.4571 (AISI 316Ti)',steelNo:'1.4571',type:'austenitic',Rm_rt:515,Re_rt:220,Rp10_rt:260,
-    tempData:[[50,207,244,490],[100,185,218,440],[150,177,206,410],[200,167,196,390],[250,157,186,385],[300,145,175,375],[350,140,169,375],[400,135,164,375],[450,131,160,370],[500,129,158,360],[550,127,157,330]]},
-  '1.4541':{name:'X6CrNiTi18-10 / 1.4541 (AISI 321)',steelNo:'1.4541',type:'austenitic',Rm_rt:500,Re_rt:200,Rp10_rt:240,
-    tempData:[[50,191,228,477],[100,176,208,440],[150,167,196,410],[200,157,186,390],[250,147,177,385],[300,136,167,375],[350,130,161,375],[400,125,156,375],[450,121,152,370],[500,119,149,360],[550,118,147,330]]},
-  '1.4462':{name:'X2CrNiMoN22-5-3 / 1.4462 (Duplex 2205)',steelNo:'1.4462',type:'ferritic',Rm_rt:640,Re_rt:450,
-    tempData:[[50,422,null,621],[100,360,null,590],[150,335,null,570],[200,315,null,550],[250,300,null,540]]},
-};
 
 // ── INTERPOLATION ─────────────────────────────────────────────────────────────
 function interpStrength(mat,tc){
@@ -203,6 +131,25 @@ function updateWaterPhase() {
       +'<span style="color:var(--mute);font-size:10px">'+margin+' °C over kogepunktet  |  Brug Gas Group 2</span>';
     box.style.borderLeftColor = '#e74c3c';
   }
+}
+
+function updatePedDisplay() {
+  const el = document.getElementById('catAutoDisplay');
+  if (!el || document.getElementById('catOverride')?.checked) return;
+  const P_bar = parseFloat(document.getElementById('pressure')?.value);
+  const fluid = document.getElementById('fluidType')?.value || 'gas2';
+  const npsVal = document.getElementById('npsSelect')?.value;
+  const pipeObj = npsVal ? PIPES.find(p => p.nps === npsVal) : null;
+  const dn_input = parseFloat(document.getElementById('dn_input')?.value);
+  const do_val = parseFloat(document.getElementById('man_od')?.value || document.getElementById('man_od_v')?.value);
+  const DN = pipeObj ? pipeObj.dn : (dn_input > 0 ? dn_input : (do_val > 0 ? Math.round(do_val * 0.85) : null));
+  const textEl = el.querySelector('.apple-select-text') || el;
+  if (!P_bar || isNaN(P_bar) || P_bar <= 0 || !DN) {
+    textEl.textContent = 'Auto fra DN × PS';
+    return;
+  }
+  const ped = pedClassify(fluid, P_bar, DN);
+  textEl.textContent = ped.cat;
 }
 
 // ── UI TOGGLE HELPERS ─────────────────────────────────────────────────────────
@@ -508,9 +455,9 @@ function buildDerivationCard(r) {
     const r1 = td.find(x => x[0] === iData.t_low) || [], r2 = td.find(x => x[0] === iData.t_high) || [];
     tblRows = '<tr style="color:#7dd3fc"><td>' + iData.t_low + '&deg;C</td><td>' + (r1[1] || '&mdash;') + '</td><td>' + (r1[2] || '&mdash;') + '</td><td>' + (r1[3] || '&mdash;') + '</td></tr>'
       + '<tr style="color:#7dd3fc"><td>' + iData.t_high + '&deg;C</td><td>' + (r2[1] || '&mdash;') + '</td><td>' + (r2[2] || '&mdash;') + '</td><td>' + (r2[3] || '&mdash;') + '</td></tr>'
-      + '<tr style="background:rgba(230,126,34,.1);color:var(--acc2);font-weight:bold"><td>&rarr;' + r.tc + '&deg;C</td><td>' + (fd.Rp02_t || '&mdash;') + '</td><td>' + (fd.Rp10_t || '&mdash;') + '</td><td>' + (fd.Rm_t || '&mdash;') + '</td></tr>';
+      + '<tr style="background:rgba(230,126,34,.1);color:var(--acc-2);font-weight:bold"><td>&rarr;' + r.tc + '&deg;C</td><td>' + (fd.Rp02_t || '&mdash;') + '</td><td>' + (fd.Rp10_t || '&mdash;') + '</td><td>' + (fd.Rm_t || '&mdash;') + '</td></tr>';
   } else {
-    tblRows = '<tr style="background:rgba(230,126,34,.1);color:var(--acc2);font-weight:bold"><td>' + r.tc + '&deg;C</td><td>' + (fd.Rp02_t || '&mdash;') + '</td><td>' + (fd.Rp10_t || '&mdash;') + '</td><td>' + (fd.Rm_t || '&mdash;') + '</td></tr>';
+    tblRows = '<tr style="background:rgba(230,126,34,.1);color:var(--acc-2);font-weight:bold"><td>' + r.tc + '&deg;C</td><td>' + (fd.Rp02_t || '&mdash;') + '</td><td>' + (fd.Rp10_t || '&mdash;') + '</td><td>' + (fd.Rm_t || '&mdash;') + '</td></tr>';
   }
   let f_check = null;
   if (isAust) {
@@ -532,10 +479,10 @@ function buildDerivationCard(r) {
     + 'Type: <span class="fd">' + (isAust ? 'Austenitic &sect;5.2.2' : 'Ferritic &sect;5.2.1') + '</span><br>'
     + '<span style="color:#3498db">' + optLabel + '</span><br>T: <span class="fd">' + r.tc + '&deg;C</span><br>'
     + '<span style="color:var(--mute);font-size:10px">' + iData.note + '</span></div>'
-    + '<div style="font-family:var(--mono);font-size:10px;color:var(--acc2);letter-spacing:2px;margin-bottom:6px">TABLE 13 EXTRACT (MPa)</div>'
+    + '<div style="font-family:var(--mono);font-size:10px;color:var(--acc-2);letter-spacing:2px;margin-bottom:6px">TABLE 13 EXTRACT (MPa)</div>'
     + '<table class="stbl" style="margin-bottom:10px"><thead><tr><th>T (&deg;C)</th><th>Rp0.2</th><th>Rp1.0</th><th>Rm</th></tr></thead><tbody>' + tblRows + '</tbody></table>'
     + '<div class="fbox"><div class="ftit">f calculation</div>' + stepLines + '<br>f = <span class="fr">' + r.f.toFixed(2) + ' MPa</span><br>Governing: <span style="color:#f39c12">' + fd.governs + '</span></div></div>'
-    + '<div><div style="font-family:var(--mono);font-size:10px;color:var(--acc2);letter-spacing:2px;margin-bottom:8px">VERIFICATION</div>'
+    + '<div><div style="font-family:var(--mono);font-size:10px;color:var(--acc-2);letter-spacing:2px;margin-bottom:8px">VERIFICATION</div>'
     + '<div class="fbox" style="margin-bottom:8px;border-left-color:' + (v1ok ? '#27ae60' : '#e74c3c') + '">'
     + '<div class="ftit" style="color:' + (v1ok ? '#2ecc71' : '#e74c3c') + '">CHECK 1 &mdash; Re-derive f</div>'
     + 'f_check = <span class="fv">' + (f_check || '&mdash;') + ' MPa</span> vs f = <span class="fr">' + r.f.toFixed(2) + ' MPa</span>'
@@ -1006,8 +953,56 @@ const _FORM_FIELDS = [
 const PM = {
   projects: {}, activeId: null,
 
-  _load() { try { const r = localStorage.getItem(_PROJ_KEY); this.projects = r ? JSON.parse(r) : {}; this.activeId = localStorage.getItem(_ACTIVE_KEY) || null; } catch(e) { this.projects = {}; this.activeId = null; } },
-  _save() { try { localStorage.setItem(_PROJ_KEY, JSON.stringify(this.projects)); localStorage.setItem(_ACTIVE_KEY, this.activeId || ''); localStorage.setItem(_VER_KEY, _STORAGE_VER); } catch(e) { console.warn('localStorage full:', e); } },
+  _load() {
+    try {
+      const r = localStorage.getItem(_PROJ_KEY);
+      this.projects = r ? JSON.parse(r) : {};
+      this.activeId = localStorage.getItem(_ACTIVE_KEY) || null;
+    } catch(e) { this.projects = {}; this.activeId = null; }
+  },
+
+  async _loadAsync() {
+    try {
+      const res = await fetch('/api/projects');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.projects) {
+          this.projects = data.projects;
+          this.activeId = data.activeId || null;
+          return;
+        }
+        // Første gang: migrer fra localStorage hvis der er data
+        const legacy = localStorage.getItem(_PROJ_KEY);
+        if (legacy) {
+          this.projects = JSON.parse(legacy);
+          this.activeId = localStorage.getItem(_ACTIVE_KEY) || null;
+          await this._saveAsync();
+          return;
+        }
+        this.projects = {}; this.activeId = null;
+      } else {
+        this._load();
+      }
+    } catch(e) { console.warn('PM._loadAsync:', e); this._load(); }
+  },
+
+  _save() {
+    try {
+      localStorage.setItem(_PROJ_KEY, JSON.stringify(this.projects));
+      localStorage.setItem(_ACTIVE_KEY, this.activeId || '');
+      localStorage.setItem(_VER_KEY, _STORAGE_VER);
+    } catch(e) { console.warn('localStorage full:', e); }
+  },
+
+  async _saveAsync() {
+    try {
+      await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projects: this.projects, activeId: this.activeId || '' })
+      });
+    } catch(e) { console.warn('PM._saveAsync:', e); this._save(); }
+  },
 
   _captureForm() {
     const s = {};
@@ -1049,7 +1044,7 @@ const PM = {
     const proj = this.projects[this.activeId];
     proj.formState = this._captureForm(); proj.modified = new Date().toISOString();
     try { proj.last = LAST ? JSON.parse(JSON.stringify(LAST)) : null; proj.reportList = REPORT_LIST ? JSON.parse(JSON.stringify(REPORT_LIST)) : []; } catch(e) { proj.last = null; proj.reportList = []; }
-    this._save(); this._flashSaved();
+    this._saveAsync(); this._flashSaved();
   },
 
   _restoreState(id) {
@@ -1080,8 +1075,8 @@ const PM = {
   createProject(name, switchTo = true) {
     const id = 'proj_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
     this.projects[id] = { id, name: name || 'Nyt projekt', created: new Date().toISOString(), modified: new Date().toISOString(), lastAccessed: new Date().toISOString(), formState: {}, last: null, reportList: [] };
-    if (switchTo) { this.saveCurrentState(); this.activeId = id; this._save(); this.renderSidebar(); this._restoreState(id); }
-    else { this._save(); }
+    if (switchTo) { this.saveCurrentState(); this.activeId = id; this._saveAsync(); this.renderSidebar(); this._restoreState(id); }
+    else { this._saveAsync(); }
     return id;
   },
 
@@ -1090,14 +1085,14 @@ const PM = {
     if (!confirm('Slet projektet "' + this.projects[id].name + '"?')) return;
     delete this.projects[id];
     if (this.activeId === id) this.activeId = Object.keys(this.projects).sort((a, b) => new Date(this.projects[b].lastAccessed || this.projects[b].modified) - new Date(this.projects[a].lastAccessed || this.projects[a].modified))[0];
-    this._save(); this.renderSidebar(); this._restoreState(this.activeId);
+    this._saveAsync(); this.renderSidebar(); this._restoreState(this.activeId);
   },
 
   switchProject(id) {
     if (id === this.activeId) return;
     this.saveCurrentState(); this.activeId = id;
     if (this.projects[id]) this.projects[id].lastAccessed = new Date().toISOString();
-    this._save(); this.renderSidebar(); this._restoreState(id);
+    this._saveAsync(); this.renderSidebar(); this._restoreState(id);
   },
 
   promptCreate() {
@@ -1148,7 +1143,7 @@ const PM = {
   renameProject(id, newName) {
     if (!this.projects[id]) return;
     this.projects[id].name = (newName || '').trim() || 'Uden navn'; this.projects[id].modified = new Date().toISOString();
-    this._save(); this.renderSidebar();
+    this._saveAsync(); this.renderSidebar();
   },
   renameKey(id, e) {
     if (e.key === 'Enter') this.finishRename(id);
@@ -1176,8 +1171,8 @@ const PM = {
     }
   },
 
-  init() {
-    // Version check — clears ALL old data when storage layout changes
+  async init() {
+    // Version check — only relevant for localStorage fallback path
     const savedVer = localStorage.getItem(_VER_KEY);
     if (savedVer !== _STORAGE_VER) {
       localStorage.removeItem(_PROJ_KEY);
@@ -1185,10 +1180,9 @@ const PM = {
       localStorage.setItem(_VER_KEY, _STORAGE_VER);
     }
 
-    this._load();
+    await this._loadAsync();
 
     if (!Object.keys(this.projects).length) {
-      // Seed with the demo projects from the original PipeSpec.html sidebar
       const demos = [
         'Dampdistribution Hal 2',
         'Process Linie 14B — kondensat',
@@ -1203,6 +1197,7 @@ const PM = {
         if (i === 0) firstId = id;
       });
       this.activeId = firstId;
+      await this._saveAsync();
     }
     if (!this.activeId || !this.projects[this.activeId]) {
       this.activeId = Object.keys(this.projects).sort((a, b) => new Date(this.projects[b].lastAccessed || this.projects[b].modified) - new Date(this.projects[a].lastAccessed || this.projects[a].modified))[0];
@@ -1218,7 +1213,7 @@ window.PM = PM;
 
 // ── PATCH UI OBJECT & WIRE ENGINE EVENTS ──────────────────────────────────────
 (function _engineInit() {
-  function run() {
+  async function run() {
     // Expand tooltip dictionary with all engine keys
     if (window.TT) {
       const extra = {
@@ -1296,6 +1291,14 @@ window.PM = PM;
     document.getElementById('temperature')?.addEventListener('input', updateWaterPhase);
     document.getElementById('fluidType')?.addEventListener('change', updateWaterPhase);
     updateWaterPhase();
+    // PED category live display
+    document.getElementById('pressure')?.addEventListener('input', updatePedDisplay);
+    document.getElementById('fluidType')?.addEventListener('change', updatePedDisplay);
+    document.getElementById('npsSelect')?.addEventListener('change', updatePedDisplay);
+    document.getElementById('dn_input')?.addEventListener('input', updatePedDisplay);
+    document.getElementById('man_od')?.addEventListener('input', updatePedDisplay);
+    document.getElementById('catOverride')?.addEventListener('change', updatePedDisplay);
+    updatePedDisplay();
 
     // Fittings calculate buttons (wire by text content)
     document.querySelectorAll('#tab-fittings button.calc-btn').forEach(btn => {
@@ -1342,7 +1345,7 @@ window.PM = PM;
     initNpsSelect();
 
     // Init PM
-    try { PM.init(); } catch(e) { console.error('PM.init failed:', e); }
+    try { await PM.init(); } catch(e) { console.error('PM.init failed:', e); }
   }
 
   if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', run); }

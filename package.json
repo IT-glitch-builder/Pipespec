@@ -20,11 +20,16 @@
     "express": "^5.2.1"
   },
   "devDependencies": {
+    "canvas": "^3.2.3",
     "concurrently": "^9.2.1",
     "electron": "^36.0.0",
-    "electron-builder": "^26.8.1"
+    "electron-builder": "^26.8.1",
+    "png-to-ico": "^3.0.1"
   },
   "build": {
+    "directories": {
+      "output": "C:/Build/PipeSpec"
+    },
     "appId": "dk.edgeway.pipespec",
     "productName": "EdgeWay PipeSpec",
     "copyright": "Copyright © 2026 EdgeWay",
@@ -35,13 +40,13 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "assets/icon.png"
+      "icon": "assets/icon.ico"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "assets/icon.png",
-      "installerHeaderIcon": "assets/icon.png",
+      "installerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "EdgeWay PipeSpec"
@@ -52,7 +57,11 @@
       "!**/*.map",
       "!Standarder/**",
       "!.env",
-      "!.git/**"
+      "!.git/**",
+      "!gen-icon.mjs",
+      "!EW.png",
+      "!assets/icon-source.png",
+      "!assets/icon-*.png"
     ],
     "extraResources": [],
     "asar": true

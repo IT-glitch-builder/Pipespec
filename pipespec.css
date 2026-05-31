@@ -626,7 +626,7 @@ body.is-resizing, body.is-resizing * { cursor: ew-resize !important; user-select
 }
 .row.full { display: block; padding: 13px 16px; }
 .row-label {
-  flex: 1; min-width: 0;
+  flex-shrink: 0;
   font-size: 14px;
   font-weight: 400;
   color: var(--text);
@@ -643,14 +643,24 @@ body.is-resizing, body.is-resizing * { cursor: ew-resize !important; user-select
   letter-spacing: -0.005em;
 }
 .row-value {
+  flex: 1;
+  min-width: 0;
   font-size: 14px;
   color: var(--text-3);
-  display: flex; align-items: center;
+  display: flex; align-items: center; justify-content: flex-end;
   gap: 6px;
   letter-spacing: -0.005em;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.row-value > .rv-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 .row-value.acc { color: var(--acc); font-weight: 500; }
-#catAutoDisplay { white-space: normal; text-align: right; max-width: 60%; overflow: visible; text-overflow: clip; flex-wrap: wrap; }
+#catAutoDisplay { white-space: nowrap; text-align: right; }
 .row-value .unit {
   color: var(--text-3);
   font-size: 13px;
@@ -752,11 +762,12 @@ body.is-resizing, body.is-resizing * { cursor: ew-resize !important; user-select
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  margin-left: auto;
   color: var(--acc);
   font-size: 14px;
   font-weight: 400;
   cursor: pointer;
-  max-width: 65%;
+  min-width: 0;
   background: transparent;
   padding: 0;
   border: 0;
@@ -767,6 +778,7 @@ body.is-resizing, body.is-resizing * { cursor: ew-resize !important; user-select
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 .apple-select-chev {
   color: var(--text-4);

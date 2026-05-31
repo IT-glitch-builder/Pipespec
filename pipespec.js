@@ -50,37 +50,7 @@ const UI = {
     document.getElementById('catManualSelect').style.display = on ? 'block' : 'none';
   },
 
-  /* ── Steel type rows ───────────────────────────────────────────────── */
-  toggleSteelRows() {
-    const s = document.getElementById('steelType').value;
-    const aust = (s === 'austenitic');
-    document.getElementById('aust522block').style.display = aust ? 'block' : 'none';
-    document.getElementById('row_ferritic').style.display = aust ? 'none' : 'grid';
-    document.getElementById('row_aust').style.display = aust ? 'grid' : 'none';
-    // tweak labels
-    document.getElementById('sf_re_label').textContent =
-      aust ? 'SF on proof (Rp1.0)' : 'SF on yield (Re)';
-    document.getElementById('sf_note').innerHTML =
-      aust
-      ? 'Austenitic §5.2.2: <span style="color:var(--info)">Rp1,0 ÷ 1.5</span> · <span style="color:var(--info)">Rm ÷ 3.0</span>'
-      : 'Standard ferritic: <span style="color:var(--info)">Re ÷ 1.5</span> · <span style="color:var(--info)">Rm ÷ 2.4</span>';
-  },
-
-  /* ── Material preset → applies steel type + suggested values ───────── */
-  applyPreset() {
-    const v = document.getElementById('matPreset').value;
-    const aust = /^1\.4(30|40|42|46|54|57)/.test(v);
-    document.getElementById('steelType').value = aust ? 'austenitic' : 'ferritic';
-    this.toggleSteelRows();
-  },
-
-  /* ── Tabs inside material block (Manual / Compute) ─────────────────── */
-  switchTab(which, btn) {
-    document.querySelectorAll('.tabs .tb').forEach(b => b.classList.remove('on'));
-    btn.classList.add('on');
-    document.getElementById('tp_manual').classList.toggle('on', which === 'manual');
-    document.getElementById('tp_compute').classList.toggle('on', which === 'compute');
-  },
+  // toggleSteelRows, applyPreset, switchTab: defineret i engine.js og patched ind på UI ved init
 
   /* ── Mill tolerance type ───────────────────────────────────────────── */
   toggleC1() {

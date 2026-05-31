@@ -12,16 +12,6 @@
 /* ── Project sidebar fixes ── */
 .proj-item-edit { display: none; }  /* hidden until user double-clicks to rename */
 
-/* ── Backward-compat CSS aliases — engine-generated HTML uses old variable names ── */
-:root {
-  --text2:    var(--text-2);
-  --text3:    var(--text-3);
-  --card2:    var(--card-2);
-  --bord:     var(--hair);
-  --bord-m:   var(--hair-strong);
-  --acc2:     var(--acc-2);
-  --acc-glow: var(--acc-bg-2);
-}
 /* ── CSS classes used by engine-generated result HTML ── */
 .kgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:14px}
 .kpi{background:var(--card-2);border:1px solid var(--hair);border-radius:var(--r-sm);padding:12px 14px;position:relative;overflow:hidden}
@@ -372,7 +362,12 @@
       </div>
       <div class="row">
         <span class="row-label" data-i18n="sec2.pedCategory">PED piping category</span>
-        <span id="catAutoDisplay" class="row-value acc" data-i18n="sec2.pedAuto">Auto from DN × PS</span>
+        <span class="row-value">
+          <button id="catAutoDisplay" class="apple-select" style="pointer-events:none">
+            <span class="apple-select-text">Auto fra DN × PS</span>
+            <svg class="apple-select-chev" width="6" height="10" viewBox="0 0 6 10"><path d="M1 1l4 4-4 4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </span>
         <span id="catManualSelect" style="display:none">
           <select id="catManual" class="row-select">
             <option value="Art 4,3">Art 4,3</option>
@@ -1688,6 +1683,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <!-- ── ENGINE FILES ── -->
+<script src="materials.js"></script>
 <script src="engine.js"></script>
 <script src="fittings.js"></script>
 <script src="report.js"></script>

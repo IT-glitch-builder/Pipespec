@@ -27,3 +27,7 @@ npm-debug.log*
 # Build output
 dist/
 build/
+
+# Brugerdata — gemmes i %APPDATA%, ikke i repo
+projects.json
+license.dat

@@ -1,0 +1,38 @@
+name: Build og Release
+
+on:
+  push:
+    tags:
+      - 'v*'          # Kør kun ved tags som v1.0.0, v1.2.3 osv.
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Hent kode
+        uses: actions/checkout@v4
+
+      - name: Sæt Node.js op
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Installér afhængigheder
+        run: npm ci
+
+      - name: Byg Windows .exe
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run build
+
+      - name: Upload til GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.exe
+            dist/*.yml
+            dist/*.blockmap
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

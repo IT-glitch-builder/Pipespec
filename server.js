@@ -50,6 +50,34 @@ app.get('/api/version', (_req, res) => {
   }
 });
 
+// ── PROJEKT PERSISTENS ────────────────────────────────────────────────────────
+// Gem i %APPDATA%/EdgeWay PipeSpec/ så data overlever app-opdateringer
+const _userData = path.join(process.env.APPDATA || path.join(require('os').homedir(), 'AppData', 'Roaming'), 'EdgeWay PipeSpec');
+if (!fs.existsSync(_userData)) fs.mkdirSync(_userData, { recursive: true });
+const PROJECTS_FILE = path.join(_userData, 'projects.json');
+
+app.get('/api/projects', (_req, res) => {
+  try {
+    if (!fs.existsSync(PROJECTS_FILE)) return res.json(null);
+    const raw = fs.readFileSync(PROJECTS_FILE, 'utf8');
+    res.type('json').send(raw);
+  } catch (e) {
+    console.error('projects-load fejl:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/projects', (req, res) => {
+  try {
+    const json = JSON.stringify(req.body);
+    fs.writeFileSync(PROJECTS_FILE, json, 'utf8');
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('projects-save fejl:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.get('/', (_req, res) => {
   res.redirect('/PipeSpec.html');
 });

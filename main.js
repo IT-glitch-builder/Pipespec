@@ -12,6 +12,9 @@ const http = require('http');
 
 const IS_DEV = !app.isPackaged;
 
+// ── Licens ────────────────────────────────────────────────────────────────────
+const License = require('./license.js');
+
 // ── Én instans ad gangen ──────────────────────────────────────────────────────
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) { app.quit(); }
@@ -37,10 +40,37 @@ function waitForServer(url, retries, delay, cb) {
   });
 }
 
-// ── Vindue ────────────────────────────────────────────────────────────────────
-let mainWindow = null;
+// ── Vinduer ───────────────────────────────────────────────────────────────────
+let mainWindow    = null;
+let licenseWindow = null;
 
-function createWindow() {
+function openLicenseWindow() {
+  licenseWindow = new BrowserWindow({
+    width:           480,
+    height:          520,
+    resizable:       false,
+    title:           'EdgeWay PipeSpec — Aktivering',
+    icon:            path.join(__dirname, 'assets', 'icon.png'),
+    webPreferences: {
+      nodeIntegration:  false,
+      contextIsolation: true,
+      preload:          path.join(__dirname, 'preload.js'),
+    },
+    show:            false,
+    backgroundColor: '#0f1923',
+    frame:           true,
+  });
+
+  licenseWindow.setMenuBarVisibility(false);
+  licenseWindow.loadURL('http://localhost:3001/license-screen.html');
+  licenseWindow.once('ready-to-show', () => {
+    licenseWindow.show();
+    licenseWindow.focus();
+  });
+  licenseWindow.on('closed', () => { licenseWindow = null; });
+}
+
+function openMainWindow() {
   mainWindow = new BrowserWindow({
     width:     1400,
     height:    900,
@@ -57,32 +87,34 @@ function createWindow() {
     backgroundColor: '#0f1923',
   });
 
-  // Åbn eksterne links i systemets browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: 'deny' };
   });
 
   mainWindow.setMenuBarVisibility(false);
-
-  // DEV: brug localhost (Express kører separat med `node server.js`)
-  // PROD: brug den interne server
   mainWindow.loadURL('http://localhost:3001/PipeSpec.html');
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
     mainWindow.focus();
-
-    // Tjek for opdateringer i produktion
-    if (!IS_DEV) {
-      autoUpdater.checkForUpdatesAndNotify();
-    } else {
-      console.log('DEV mode — auto-update deaktiveret');
-    }
+    if (!IS_DEV) autoUpdater.checkForUpdatesAndNotify();
+    else console.log('DEV mode — auto-update deaktiveret');
   });
 
   mainWindow.on('closed', () => { mainWindow = null; });
 }
+
+// ── IPC: Licens ───────────────────────────────────────────────────────────────
+ipcMain.handle('license-activate', async (_event, keyStr) => {
+  return await License.activateKey(keyStr);
+});
+
+// Bruges når licensskærmen er færdig — luk licensvindue, åbn hovedapp
+ipcMain.on('license-activated', () => {
+  if (licenseWindow) { licenseWindow.close(); licenseWindow = null; }
+  openMainWindow();
+});
 
 // ── Auto-updater events ───────────────────────────────────────────────────────
 autoUpdater.on('update-available', () => {
@@ -111,10 +143,9 @@ autoUpdater.on('error', (err) => {
 
 // ── App livscyklus ────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
-  // Ryd cache i dev så ændringer altid vises
   if (IS_DEV) await session.defaultSession.clearCache();
 
-  startServer(); // Ingen effekt i dev
+  startServer();
 
   waitForServer('http://localhost:3001/PipeSpec.html', 20, 500, (err) => {
     if (err) {
@@ -122,14 +153,22 @@ app.whenReady().then(async () => {
       app.quit();
       return;
     }
-    createWindow();
+
+    // Tjek om der er en gyldig licens gemt — ellers vis licensskærm
+    const license = License.loadLicense();
+    if (license && license.valid) {
+      openMainWindow();
+    } else {
+      openLicenseWindow();
+    }
   });
 });
 
 app.on('second-instance', () => {
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.focus();
+  const win = mainWindow || licenseWindow;
+  if (win) {
+    if (win.isMinimized()) win.restore();
+    win.focus();
   }
 });
 
@@ -138,5 +177,9 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  if (BrowserWindow.getAllWindows().length === 0) {
+    const license = License.loadLicense();
+    if (license && license.valid) openMainWindow();
+    else openLicenseWindow();
+  }
 });

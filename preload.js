@@ -12,4 +12,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getLicense:  ()     => ipcRenderer.invoke('get-license'),
   // App version
   getVersion: () => ipcRenderer.invoke('get-version'),
+  // Licens aktivering (bruges af license-screen.html)
+  activateLicense:  (key) => ipcRenderer.invoke('license-activate', key),
+  licenseActivated: ()    => ipcRenderer.send('license-activated'),
 });
