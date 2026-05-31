@@ -3,7 +3,7 @@ name: Build og Release
 on:
   push:
     tags:
-      - 'v*'          # Kør kun ved tags som v1.0.0, v1.2.3 osv.
+      - 'v*'
 
 jobs:
   build-windows:

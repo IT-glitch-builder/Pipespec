@@ -1,8 +1,5 @@
 /**
  * EdgeWay PipeSpec — Electron hovedproces
- *
- * DEV:  npm run dev  → åbner localhost:3001 (Express kører separat)
- * PROD: npm run build → pakker alt i .exe, Express kører in-process
  */
 
 const { app, BrowserWindow, shell, dialog, ipcMain, session } = require('electron');
@@ -12,7 +9,6 @@ const http = require('http');
 
 const IS_DEV = !app.isPackaged;
 
-// ── Licens ────────────────────────────────────────────────────────────────────
 const License = require('./license.js');
 
 // ── Én instans ad gangen ──────────────────────────────────────────────────────
@@ -26,7 +22,6 @@ function startServer() {
   serverStarted = true;
   try {
     require('./server.js');
-    console.log('PipeSpec server startet på port 3001');
   } catch (err) {
     dialog.showErrorBox('Server-fejl', `Kunne ikke starte intern server:\n${err.message}`);
   }
@@ -58,15 +53,10 @@ function openLicenseWindow() {
     },
     show:            false,
     backgroundColor: '#0f1923',
-    frame:           true,
   });
-
   licenseWindow.setMenuBarVisibility(false);
   licenseWindow.loadURL('http://localhost:3001/license-screen.html');
-  licenseWindow.once('ready-to-show', () => {
-    licenseWindow.show();
-    licenseWindow.focus();
-  });
+  licenseWindow.once('ready-to-show', () => { licenseWindow.show(); licenseWindow.focus(); });
   licenseWindow.on('closed', () => { licenseWindow = null; });
 }
 
@@ -86,95 +76,74 @@ function openMainWindow() {
     show:            false,
     backgroundColor: '#0f1923',
   });
-
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: 'deny' };
   });
-
   mainWindow.setMenuBarVisibility(false);
   mainWindow.loadURL('http://localhost:3001/PipeSpec.html');
-
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
     mainWindow.focus();
     if (!IS_DEV) autoUpdater.checkForUpdatesAndNotify();
-    else console.log('DEV mode — auto-update deaktiveret');
   });
-
   mainWindow.on('closed', () => { mainWindow = null; });
 }
 
-// ── IPC: Licens ───────────────────────────────────────────────────────────────
-ipcMain.handle('license-activate', async (_event, keyStr) => {
-  return await License.activateKey(keyStr);
-});
+// ── IPC handlers ──────────────────────────────────────────────────────────────
+ipcMain.handle('license-activate', async (_e, key) => License.activateKey(key));
+ipcMain.handle('get-hwid',  () => License.getMachineId());
+ipcMain.handle('get-version', () => app.getVersion());
 
-// Bruges når licensskærmen er færdig — luk licensvindue, åbn hovedapp
 ipcMain.on('license-activated', () => {
   if (licenseWindow) { licenseWindow.close(); licenseWindow = null; }
   openMainWindow();
 });
 
-// ── Auto-updater events ───────────────────────────────────────────────────────
+// ── Auto-updater ──────────────────────────────────────────────────────────────
 autoUpdater.on('update-available', () => {
   dialog.showMessageBox({
-    type:    'info',
-    title:   'Opdatering tilgængelig',
-    message: 'En ny version af PipeSpec er tilgængelig.\nDen hentes i baggrunden og installeres næste gang du lukker appen.',
+    type: 'info', title: 'Opdatering tilgængelig',
+    message: 'En ny version er tilgængelig og hentes i baggrunden.',
     buttons: ['OK']
   });
 });
 
 autoUpdater.on('update-downloaded', () => {
   dialog.showMessageBox({
-    type:    'info',
-    title:   'Opdatering klar',
-    message: 'Opdateringen er downloadet.\nGenstart appen for at installere den nye version.',
+    type: 'info', title: 'Opdatering klar',
+    message: 'Opdateringen er klar. Genstart for at installere.',
     buttons: ['Genstart nu', 'Senere']
   }).then(({ response }) => {
     if (response === 0) autoUpdater.quitAndInstall();
   });
 });
 
-autoUpdater.on('error', (err) => {
-  console.error('Auto-updater fejl:', err.message);
-});
+autoUpdater.on('error', err => console.error('Auto-updater:', err.message));
 
 // ── App livscyklus ────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
   if (IS_DEV) await session.defaultSession.clearCache();
-
   startServer();
 
   waitForServer('http://localhost:3001/PipeSpec.html', 20, 500, (err) => {
     if (err) {
-      dialog.showErrorBox('Timeout', 'Serveren startede ikke i tide.\nKør "node server.js" i terminalen først (dev), eller prøv at genstarte appen.');
+      dialog.showErrorBox('Timeout', 'Serveren startede ikke.\nGenstart appen eller kontakt support.');
       app.quit();
       return;
     }
-
-    // Tjek om der er en gyldig licens gemt — ellers vis licensskærm
     const license = License.loadLicense();
-    if (license && license.valid) {
-      openMainWindow();
-    } else {
-      openLicenseWindow();
-    }
+    if (license && license.valid) openMainWindow();
+    else openLicenseWindow();
   });
 });
 
 app.on('second-instance', () => {
   const win = mainWindow || licenseWindow;
-  if (win) {
-    if (win.isMinimized()) win.restore();
-    win.focus();
-  }
+  if (win) { if (win.isMinimized()) win.restore(); win.focus(); }
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
-});
+app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {

@@ -1,6 +1,6 @@
 {
   "name": "pipespec",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "EdgeWay PipeSpec — Pipeline Dimensioning Calculator",
   "main": "main.js",
   "scripts": {
