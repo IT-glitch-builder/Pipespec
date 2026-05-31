@@ -89,7 +89,10 @@ function openMainWindow() {
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
     mainWindow.focus();
-    if (!IS_DEV) autoUpdater.checkForUpdatesAndNotify();
+    if (!IS_DEV) {
+      autoUpdater.checkForUpdatesAndNotify();
+      setInterval(() => autoUpdater.checkForUpdatesAndNotify(), 30 * 60 * 1000);
+    }
   });
   mainWindow.on('closed', () => { mainWindow = null; });
 }
