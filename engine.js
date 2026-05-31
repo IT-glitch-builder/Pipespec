@@ -998,12 +998,17 @@ const PM = {
 
   async _saveAsync() {
     try {
-      await fetch('/api/projects', {
+      const res = await fetch('/api/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ projects: this.projects, activeId: this.activeId || '' })
       });
-    } catch(e) { console.warn('PM._saveAsync:', e); this._save(); }
+      if (!res.ok) {
+        const txt = await res.text().catch(() => '');
+        console.error('PM._saveAsync HTTP', res.status, txt);
+        this._save();
+      }
+    } catch(e) { console.error('PM._saveAsync fetch-fejl:', e); this._save(); }
   },
 
   _captureForm() {

@@ -52,6 +52,10 @@ const _userData = process.env.APP_USERDATA
 if (!fs.existsSync(_userData)) fs.mkdirSync(_userData, { recursive: true });
 const PROJECTS_FILE = path.join(_userData, 'projects.json');
 
+app.get('/api/debug-path', (_req, res) => {
+  res.json({ PROJECTS_FILE, APP_USERDATA: process.env.APP_USERDATA, APPDATA: process.env.APPDATA });
+});
+
 app.get('/api/projects', (_req, res) => {
   try {
     if (!fs.existsSync(PROJECTS_FILE)) return res.json(null);
