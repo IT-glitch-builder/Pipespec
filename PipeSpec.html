@@ -1705,6 +1705,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   } catch (_) {}
 
+  // Synkronisér licensnøgle til localStorage så AI-modulet kan læse den
+  try {
+    if (window.electronAPI?.getLicenseKey) {
+      const key = await window.electronAPI.getLicenseKey();
+      if (key) {
+        localStorage.setItem('ew-license-key', key);
+        localStorage.setItem('ew-hwid', await window.electronAPI.getHwid());
+      }
+    }
+  } catch (_) {}
+
   // Auto-updater — diskret banner i sidebaren
   if (window.electronAPI?.onUpdateDownloaded) {
     window.electronAPI.onUpdateDownloaded(() => {

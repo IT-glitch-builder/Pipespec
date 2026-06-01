@@ -8,4 +8,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   restartAndUpdate:    ()    => ipcRenderer.send('restart-and-update'),
   onUpdateAvailable:   (cb)  => ipcRenderer.on('update-available',  () => cb()),
   onUpdateDownloaded:  (cb)  => ipcRenderer.on('update-downloaded', () => cb()),
+  getLicenseKey:       ()    => ipcRenderer.invoke('get-license-key'),
 });

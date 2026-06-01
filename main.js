@@ -99,8 +99,12 @@ function openMainWindow() {
 
 // ── IPC handlers ──────────────────────────────────────────────────────────────
 ipcMain.handle('license-activate', async (_e, key) => License.activateKey(key));
-ipcMain.handle('get-hwid',  () => License.getMachineId());
-ipcMain.handle('get-version', () => app.getVersion());
+ipcMain.handle('get-hwid',        () => License.getMachineId());
+ipcMain.handle('get-version',     () => app.getVersion());
+ipcMain.handle('get-license-key', () => {
+  const lic = License.loadLicense();
+  return (lic && lic.valid) ? lic.licenseKey : null;
+});
 
 ipcMain.on('license-activated', () => {
   if (licenseWindow) { licenseWindow.close(); licenseWindow = null; }
